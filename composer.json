@@ -1,0 +1,13 @@
+{
+	"name" : "jonathanfvb/web",
+	"type" : "project",
+	"description" : "Web Project",
+	"require" : {
+		"php" : ">= 7.4"
+	},	
+	"autoload" : {
+		"psr-4" : {
+			"Web\\" : "src/"
+		}
+	}
+}

@@ -1,0 +1,12 @@
+# eclipse files
+/.buildpath
+/.project
+/.settings
+
+# mysql data
+/.data/*
+!/.data/.gitempty
+
+# vendor folder
+/vendor/
+
