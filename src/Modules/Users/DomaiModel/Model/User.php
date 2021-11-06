@@ -6,13 +6,13 @@ use Api\Library\Contracts\Arrayable;
 
 class User implements Arrayable
 {
-    public ?int $id = null;
+    public string $uuid;
     
-    public string $name;
+    public string $full_name;
     
     public string $type;
     
-    public ?string $cpf = null;
+    public string $cpf = null;
     
     public ?string $cnpj = null;
     
@@ -24,8 +24,8 @@ class User implements Arrayable
     public function toArray(): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
+            'uuid' => $this->uuid,
+            'full_name' => $this->full_name,
             'type' => $this->type,
             'cpf' => $this->cpf,
             'cnpj' => $this->cnpj,

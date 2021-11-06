@@ -6,34 +6,13 @@ use Api\Modules\Users\DomaiModel\Model\User;
 
 interface UserRepositoryInterface
 {
-    /**
-     * Persiste o user
-     * @param User $User
-     * @return User
-     */
     public function persist($User): User;
     
-    /**
-     * Busca um user pelo cpf
-     *  
-     * @param string $cpf
-     * @return User|NULL
-     */
-    public function findByCpf(string $cpf): ?User;
+    public function findByUuid(string $uuid): ?User;
     
-    /**
-     * Busca um user pelo cnpj
-     *
-     * @param string $cpf
-     * @return User|NULL
-     */
+    public function findByCpfAndCnpj(string $cpf, ?string $cnpj): ?User;
+    
     public function findByCnpj(string $cnpj): ?User;
     
-    /**
-     * Busca um user pelo email
-     *
-     * @param string $cpf
-     * @return User|NULL
-     */
     public function findByEmail(string $cnpj): ?User;
 }

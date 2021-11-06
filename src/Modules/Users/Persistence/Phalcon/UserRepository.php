@@ -5,6 +5,7 @@ namespace Api\Modules\Users\Persistence\Phalcon;
 use Api\Library\Persistence\Phalcon\PhalconAbstractRepository;
 use Api\Modules\Users\DomaiModel\Model\User;
 use Api\Modules\Users\DomaiModel\Repository\UserRepositoryInterface;
+use Api\Modules\Users\DomaiModel\Model\UserEnum;
 
 class UserRepository extends PhalconAbstractRepository implements UserRepositoryInterface
 {
@@ -13,10 +14,6 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
         $this->entity = new UserModel();
     }
     
-    /**
-     * {@inheritDoc}
-     * @see \Api\Library\Persistence\Phalcon\PhalconAbstractRepository::persist()
-     */
     public function persist($User): User
     {
         return $this->parsePhalconModelToDomainModel(
@@ -24,15 +21,11 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
         );
     }
     
-    /**
-     * {@inheritDoc}
-     * @see \Api\Modules\Users\DomaiModel\Repository\UserRepositoryInterface::findByCpf()
-     */
-    public function findByCpf(string $cpf): ?User
+    public function findByUuid(string $uuid): ?User
     {
         $result = $this->entity->findFirst([
-            'conditions' => 'cpf = :cpf:',
-            'bind' => ['cpf' => $cpf]
+            'conditions' => 'uuid = :uuid:',
+            'bind' => ['uuid' => $uuid]
         ]);
         
         if (!$result) {
@@ -42,10 +35,30 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
         }
     }
     
-    /**
-     * {@inheritDoc}
-     * @see \Api\Modules\Users\DomaiModel\Repository\UserRepositoryInterface::findByCnpj()
-     */
+    public function findByCpfAndCnpj(string $cpf, ?string $cnpj): ?User
+    {
+        if (empty($cnpj)) {
+            $result = $this->entity->findFirst([
+                'conditions' => 'cpf = :cpf: AND cnpj IS NULL',
+                'bind' => ['cpf' => $cpf]
+            ]);
+        } else {
+            $result = $this->entity->findFirst([
+                'conditions' => 'cpf = :cpf: AND cnpj = :cnpj:',
+                'bind' => [
+                    'cpf' => $cpf,
+                    'cnpj' => $cnpj
+                ]
+            ]);
+        }
+        
+        if (!$result) {
+            return null;
+        } else {
+            return $this->parsePhalconModelToDomainModel($result);
+        }
+    }
+    
     public function findByCnpj(string $cnpj): ?User
     {
         $result = $this->entity->findFirst([
@@ -60,10 +73,6 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
         }
     }
     
-    /**
-     * {@inheritDoc}
-     * @see \Api\Modules\Users\DomaiModel\Repository\UserRepositoryInterface::findByEmail()
-     */
     public function findByEmail(string $email): ?User
     {
         $result = $this->entity->findFirst([
@@ -81,9 +90,13 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
     public static function parsePhalconModelToDomainModel($result): User
     {
         $User = new User();
-        $User->id = $result->id;
-        $User->name = $result->name;
-        $User->type = $result->type;
+        $User->uuid = $result->uuid;
+        $User->full_name = $result->full_name;
+        $User->type = (
+            empty($result->cnpj) 
+            ? UserEnum::TYPE_COMMON 
+            : UserEnum::TYPE_SELLER
+        );
         $User->cpf = $result->cpf;
         $User->cnpj = $result->cnpj;
         $User->email = $result->email;
