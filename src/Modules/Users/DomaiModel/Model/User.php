@@ -12,7 +12,7 @@ class User implements Arrayable
     
     public string $type;
     
-    public string $cpf = null;
+    public string $cpf;
     
     public ?string $cnpj = null;
     
@@ -20,13 +20,17 @@ class User implements Arrayable
     
     public string $pass;
     
+    public function getType(): string
+    {
+        return empty($this->cnpj) ? UserEnum::TYPE_COMMON : UserEnum::TYPE_SELLER;
+    }
     
     public function toArray(): array
     {
         return [
             'uuid' => $this->uuid,
             'full_name' => $this->full_name,
-            'type' => $this->type,
+            'type' => $this->getType(),
             'cpf' => $this->cpf,
             'cnpj' => $this->cnpj,
             'email' => $this->email,
