@@ -10,3 +10,4 @@
 # vendor folder
 /vendor/
 
+.phpunit.result.cache

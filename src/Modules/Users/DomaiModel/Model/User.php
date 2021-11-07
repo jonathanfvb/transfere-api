@@ -27,7 +27,7 @@ class User implements Arrayable
     
     public function getType(): string
     {
-        return empty($this->cnpj) ? UserEnum::TYPE_COMMON : UserEnum::TYPE_SELLER;
+        return empty($this->Cnpj) ? UserEnum::TYPE_COMMON : UserEnum::TYPE_SELLER;
     }
     
     public function toArray(): array
