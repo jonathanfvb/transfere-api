@@ -9,6 +9,7 @@ use Api\Modules\UserWallet\DomainModel\Repository\UserWalletRepositoryInterface;
 use Api\Modules\Transactions\DomainModel\Model\Transaction;
 use Api\Library\Contracts\UuidGeneratorInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionStartDTO;
+use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 
 class TransactionStart
 {
@@ -66,10 +67,10 @@ class TransactionStart
         $Transaction = new Transaction();
         $Transaction->uuid = $this->UuidGenerator->generateUuid();
         $Transaction->ammount = $Request->value;
+        $Transaction->status = TransactionEnum::STATUS_PENDING_AUTHORIZATION;
         $Transaction->Payer = $Payer;
         $Transaction->Payee = $Payee;
         $Transaction->CreatedAt = new \DateTimeImmutable();
-        $Transaction->success = 0;
         
         // registra a transação
         $this->TransactionRepository->persist($Transaction);

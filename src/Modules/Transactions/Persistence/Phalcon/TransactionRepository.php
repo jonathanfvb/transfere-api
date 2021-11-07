@@ -38,7 +38,7 @@ class TransactionRepository extends PhalconAbstractRepository implements Transac
         $Transaction = new Transaction();
         $Transaction->uuid = $result->uuid;
         $Transaction->ammount = $result->ammount;
-        $Transaction->success = $result->success;
+        $Transaction->status = $result->status;
         
         $CreatedAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->created_at);
         if (!$CreatedAt) {
@@ -48,6 +48,17 @@ class TransactionRepository extends PhalconAbstractRepository implements Transac
             );
         }
         $Transaction->CreatedAt = $CreatedAt;
+        
+        if ($result->updated_at) {
+            $UpdatedAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->updated_at);
+            if (!$UpdatedAt) {
+                throw new \InvalidArgumentException(
+                    "The field updated_at isn't in the format 'Y-m-d H:i:s'",
+                    400
+                );
+            }
+            $Transaction->UpdatedAt = $UpdatedAt;
+        }
         
         $Transaction->Payer = UserRepository::parsePhalconModelToDomainModel($result->Payer);
         $Transaction->Payee = UserRepository::parsePhalconModelToDomainModel($result->Payee);

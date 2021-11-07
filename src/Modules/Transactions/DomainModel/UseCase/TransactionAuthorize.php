@@ -8,6 +8,7 @@ use Api\Library\Contracts\Service\AuthorizeServiceInterface;
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Library\Contracts\Service\NotificationServiceInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionAuthorizeDTO;
+use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 
 class TransactionAuthorize
 {
@@ -61,8 +62,9 @@ class TransactionAuthorize
             $PayerWallet->balance = $PayerWallet->balance + $Transaction->ammount;
             $this->UserWalletRepository->persist($PayerWallet);
             
-            // altera o status da transação (não autorizada)
-            $Transaction->success = 0;
+            // altera o status da transação para não autorizada
+            $Transaction->status = TransactionEnum::STATUS_FINISHED_UNAUTHORIZED;
+            $Transaction->UpdatedAt = new \DateTimeImmutable();
             $this->TransactionRepository->persist($Transaction);
             
             throw new TransactionException('Transaction unauthorized', 400);
@@ -72,21 +74,23 @@ class TransactionAuthorize
         $PayeeWallet->balance = $PayeeWallet->balance + $Transaction->ammount;
         $this->UserWalletRepository->persist($PayeeWallet);
         
-        // altera o status da transação (notificação pendente)
-        $Transaction->success = 1;
+        // altera o status da transação notificação pendente
+        $Transaction->status = TransactionEnum::STATUS_PENDING_NOTIFICATION;
+        $Transaction->UpdatedAt = new \DateTimeImmutable();
         $this->TransactionRepository->persist($Transaction);
         
         // envia notificação para o beneficiário
         $is_notified = $this->NotificationService->sendNotification($Transaction->Payee);
         if ($is_notified) {
-            // altera o status da transação (notificação enviada)
-            $Transaction->success = 1;
+            // altera o status da transação para autorizada
+            $Transaction->status = TransactionEnum::STATUS_FINISHED_AUTHORIZED;
+            $Transaction->UpdatedAt = new \DateTimeImmutable();
             $this->TransactionRepository->persist($Transaction);
         }
         
         return new TransactionAuthorizeDTO(
             $Transaction->uuid, 
-            $Transaction->success
+            $Transaction->status
         );
     }
 }
