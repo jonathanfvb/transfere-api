@@ -9,6 +9,7 @@ use Api\Modules\Users\DomaiModel\Exception\UserException;
 use Api\Modules\Users\DomaiModel\Model\User;
 use Api\Library\ValueObject\Cpf;
 use Api\Library\ValueObject\Cnpj;
+use Api\Modules\UserWallet\DomainModel\UseCase\UserWalletCreate;
 
 class SellerUserRegister
 {
@@ -18,15 +19,19 @@ class SellerUserRegister
     
     private HashPasswordInterface $HashPassword;
     
+    private UserWalletCreate $UserWalletCreate;
+    
     public function __construct(
         UserRepositoryInterface $UserRepository,
         UuidGeneratorInterface $UuidGenerator,
-        HashPasswordInterface $HashPassword
+        HashPasswordInterface $HashPassword,
+        UserWalletCreate $UserWalletCreate
     )
     {
         $this->UserRepository = $UserRepository;
         $this->UuidGenerator = $UuidGenerator;
         $this->HashPassword = $HashPassword;
+        $this->UserWalletCreate = $UserWalletCreate;
     }
     
     public function execute(SellerUserRegisterRequest $Request)
@@ -40,6 +45,7 @@ class SellerUserRegister
             throw new UserException('Already exists a user with this email', 400);
         }
         
+        // cria o usuário do tipo seller
         $User = new User();
         $User->uuid = $this->UuidGenerator->generateUuid();
         $User->full_name = $Request->full_name;
@@ -49,6 +55,10 @@ class SellerUserRegister
         // Gera o hash do password
         $User->pass = $this->HashPassword->generateHashedPassword($Request->pass);
         
+        // persiste o usuário
         $this->UserRepository->persist($User);
+        
+        // cria a carteira do usuário
+        $this->UserWalletCreate->execute($User);
     }
 }
