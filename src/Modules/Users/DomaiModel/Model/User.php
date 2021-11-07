@@ -4,6 +4,7 @@ namespace Api\Modules\Users\DomaiModel\Model;
 
 use Api\Library\Contracts\Arrayable;
 use Api\Library\ValueObject\Cpf;
+use Api\Library\ValueObject\Cnpj;
 
 class User implements Arrayable
 {
@@ -16,7 +17,8 @@ class User implements Arrayable
     /** @var Cpf */
     public Cpf $Cpf;
     
-    public ?string $cnpj = null;
+    /** @var Cnpj */
+    public ?Cnpj $Cnpj = null;
     
     public string $email;
     
@@ -34,7 +36,7 @@ class User implements Arrayable
             'full_name' => $this->full_name,
             'type' => $this->getType(),
             'cpf' => $this->Cpf->getCpfUnmasked(),
-            'cnpj' => $this->cnpj,
+            'cnpj' => $this->Cnpj ? $this->Cnpj->getCnpjUnmasked() : null,
             'email' => $this->email,
             'pass' => $this->pass
         ];

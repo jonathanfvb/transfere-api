@@ -11,6 +11,8 @@ use Api\Modules\Users\Persistence\Phalcon\UserRepository;
 use Api\Library\Util\PhalconUuidGenerator;
 use Api\Modules\Users\DomaiModel\UseCase\CommonUserRegisterRequest;
 use Api\Library\Util\HashPassword;
+use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegister;
+use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegisterRequest;
 
 
 $container = new FactoryDefault();
@@ -57,6 +59,47 @@ $app->post('/users', function () use ($app) {
                 $user->full_name, 
                 $user->cpf, 
                 $user->email, 
+                $user->pass
+            )
+        );
+        
+        $app->response->setJsonContent($content);
+        return $app->response;
+    } catch (Exception $e) {
+        $code = $e->getCode() ? $e->getCode() : 500;
+        $app->response->setStatusCode($code);
+        $content = [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
+        $app->response->setJsonContent($content);
+        return $app->response;
+    }
+});
+
+$app->post('/sellers', function () use ($app) {
+    try {
+        $app->response->setStatusCode(200);
+        $content = [
+            'success' => true,
+            'message' => 'Lojista registrado com sucesso'
+        ];
+        
+        $user = $app->request->getJsonRawBody();
+        
+        // caso de uso para registrar usuário seller
+        $ucSellerUserReg = new SellerUserRegister(
+            new UserRepository(),
+            new PhalconUuidGenerator(),
+            new HashPassword()
+        );
+        
+        $ucSellerUserReg->execute(
+            new SellerUserRegisterRequest(
+                $user->full_name,
+                $user->cpf,
+                $user->cnpj,
+                $user->email,
                 $user->pass
             )
         );
