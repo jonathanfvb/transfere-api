@@ -4,7 +4,7 @@ namespace Api\Modules\UserWallet\DomainModel\Repository;
 
 use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
 
-interface UserWalletInterface
+interface UserWalletRepositoryInterface
 {
     public function persist($UserWallet): void;
     

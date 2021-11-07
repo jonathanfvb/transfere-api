@@ -13,6 +13,14 @@ use Api\Modules\Users\DomaiModel\UseCase\CommonUserRegisterRequest;
 use Api\Library\Util\HashPassword;
 use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegister;
 use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegisterRequest;
+use Api\Modules\UserWallet\Persistence\Phalcon\UserWalletRepository;
+use Api\Modules\Users\DomaiModel\Model\User;
+use Api\Library\ValueObject\Cpf;
+use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
+use Api\Modules\Transactions\DomainModel\Model\Transaction;
+use Api\Modules\Transactions\Persistence\Phalcon\TransactionRepository;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionStart;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionStartRequest;
 
 
 $container = new FactoryDefault();
@@ -35,6 +43,89 @@ $app->get('/', function () use ($app) {
     ];
     $app->response->setJsonContent($content);
     return $app->response;
+});
+
+$app->post('/transactions', function () use ($app) {
+    try {
+        $app->response->setStatusCode(200);
+        $content = [
+            'success' => true,
+            'message' => 'Transação iniciada'
+        ];
+        
+        $payload = $app->request->getJsonRawBody();
+        
+        // caso de uso para iniciar a transaction
+        $ucTransactionStart = new TransactionStart(
+            new TransactionRepository(), 
+            new UserRepository(), 
+            new UserWalletRepository(), 
+            new PhalconUuidGenerator()
+        );
+        
+        $Response = $ucTransactionStart->execute(
+            new TransactionStartRequest(
+                $payload->value, 
+                $payload->payer_uuid, 
+                $payload->payee_uuid
+            )
+        );
+        
+        $content['data'] = [
+            'uuid' => $Response->transaction_uuid
+        ];
+        
+        $app->response->setJsonContent($content);
+        return $app->response;
+    } catch (Exception $e) {        
+        $code = $e->getCode() ? $e->getCode() : 500;
+        $app->response->setStatusCode($code);
+        $content = [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
+        $app->response->setJsonContent($content);
+        return $app->response;
+    }
+});
+
+$app->post('/wallet', function () use ($app) {
+    try {
+        $app->response->setStatusCode(200);
+        $content = [
+            'success' => true,
+            'message' => 'Carteira registrada com sucesso'
+        ];
+        
+        $user = $app->request->getJsonRawBody();
+        
+        $User = new User();
+        $User->uuid = $user->user_uuid;
+        $User->full_name = 'User 01';
+        $User->Cpf = new Cpf('00000000191');
+        $User->email = 'user1@test.com';
+        $User->pass = '$2y$10$oIKIpDbF5aM.qxtzQrzL7uRxR/SZi0XYp9G3l2HCaQqk752f/h22O';
+        
+        $UserWallet = new UserWallet();
+        $UserWallet->User = $User;
+        $UserWallet->balance = 0;
+        $UserWallet->UpdatedAt = new DateTimeImmutable();
+        
+        $UserWalletRepository = new UserWalletRepository();
+        $UserWalletRepository->persist($UserWallet);
+        
+        $app->response->setJsonContent($content);
+        return $app->response;
+    } catch (Exception $e) {
+        $code = $e->getCode() ? $e->getCode() : 500;
+        $app->response->setStatusCode($code);
+        $content = [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
+        $app->response->setJsonContent($content);
+        return $app->response;
+    }
 });
 
 $app->post('/users', function () use ($app) {
