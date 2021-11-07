@@ -60,13 +60,16 @@ $app->post('/users', function () use ($app) {
                 $user->pass
             )
         );
+        
+        $app->response->setJsonContent($content);
+        return $app->response;
     } catch (Exception $e) {
-        $app->response->setStatusCode($e->getCode());
+        $code = $e->getCode() ? $e->getCode() : 500;
+        $app->response->setStatusCode($code);
         $content = [
             'success' => false,
             'message' => $e->getMessage()
         ];
-    } finally {
         $app->response->setJsonContent($content);
         return $app->response;
     }

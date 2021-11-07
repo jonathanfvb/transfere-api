@@ -7,6 +7,7 @@ use Api\Modules\Users\DomaiModel\Exception\UserException;
 use Api\Modules\Users\DomaiModel\Model\User;
 use Api\Library\Contracts\UuidGeneratorInterface;
 use Api\Library\Contracts\HashPasswordInterface;
+use Api\Library\ValueObject\Cpf;
 
 class CommonUserRegister
 {
@@ -40,9 +41,9 @@ class CommonUserRegister
         $User = new User();
         $User->uuid = $this->UuidGenerator->generateUuid();
         $User->full_name = $Request->full_name;
-        $User->cpf = $Request->cpf;
+        $User->Cpf = new Cpf($Request->cpf);
         $User->email = $Request->email;
-        // Gera o hash do password        
+        // Gera o hash do password
         $User->pass = $this->HashPassword->generateHashedPassword($Request->pass);
         $this->UserRepository->persist($User);
     }
