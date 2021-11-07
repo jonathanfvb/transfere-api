@@ -11,7 +11,7 @@ class Transaction implements Arrayable
     
     public float $ammount;
     
-    public bool $success;
+    public int $success;
     
     /** @var \DateTimeImmutable */
     public \DateTimeImmutable $CreatedAt;

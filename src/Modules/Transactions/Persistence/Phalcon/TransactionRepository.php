@@ -9,6 +9,16 @@ use Api\Modules\Users\Persistence\Phalcon\UserRepository;
 
 class TransactionRepository extends PhalconAbstractRepository implements TransactionRepositoryInterface
 {
+    public function __construct()
+    {
+        $this->entity = new TransactionModel();
+    }
+    
+    public function persist($Transaction): void
+    {
+        parent::persist($Transaction);
+    }
+    
     public static function parsePhalconModelToDomainModel($result): Transaction
     {
         $Transaction = new Transaction();

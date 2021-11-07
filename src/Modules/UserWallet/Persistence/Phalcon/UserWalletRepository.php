@@ -4,11 +4,21 @@ namespace Api\Modules\UserWallet\Persistence\Phalcon;
 
 use Api\Library\Persistence\Phalcon\PhalconAbstractRepository;
 use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
-use Api\Modules\UserWallet\DomainModel\Repository\UserWalletInterface;
+use Api\Modules\UserWallet\DomainModel\Repository\UserWalletRepositoryInterface;
 use Api\Modules\Users\Persistence\Phalcon\UserRepository;
 
-class UserWalletRepository extends PhalconAbstractRepository implements UserWalletInterface
+class UserWalletRepository extends PhalconAbstractRepository implements UserWalletRepositoryInterface
 {
+    public function __construct()
+    {
+        $this->entity = new UserWalletModel();
+    }
+    
+    public function persist($UserWallet): void
+    {
+        parent::persist($UserWallet);
+    }
+    
     public function findByUserUuid(string $user_uuid): ?UserWallet
     {
         $result = $this->entity->findFirst([
