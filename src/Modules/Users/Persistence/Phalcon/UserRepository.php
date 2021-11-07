@@ -6,6 +6,7 @@ use Api\Library\Persistence\Phalcon\PhalconAbstractRepository;
 use Api\Modules\Users\DomaiModel\Model\User;
 use Api\Modules\Users\DomaiModel\Repository\UserRepositoryInterface;
 use Api\Modules\Users\DomaiModel\Model\UserEnum;
+use Api\Library\ValueObject\Cpf;
 
 class UserRepository extends PhalconAbstractRepository implements UserRepositoryInterface
 {
@@ -97,7 +98,7 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
             ? UserEnum::TYPE_COMMON 
             : UserEnum::TYPE_SELLER
         );
-        $User->cpf = $result->cpf;
+        $User->Cpf = new Cpf($result->cpf);
         $User->cnpj = $result->cnpj;
         $User->email = $result->email;
         $User->pass = $result->pass;

@@ -3,6 +3,7 @@
 namespace Api\Modules\Users\DomaiModel\Model;
 
 use Api\Library\Contracts\Arrayable;
+use Api\Library\ValueObject\Cpf;
 
 class User implements Arrayable
 {
@@ -12,7 +13,8 @@ class User implements Arrayable
     
     public string $type;
     
-    public string $cpf = null;
+    /** @var Cpf */
+    public Cpf $Cpf;
     
     public ?string $cnpj = null;
     
@@ -20,14 +22,18 @@ class User implements Arrayable
     
     public string $pass;
     
+    public function getType(): string
+    {
+        return empty($this->cnpj) ? UserEnum::TYPE_COMMON : UserEnum::TYPE_SELLER;
+    }
     
     public function toArray(): array
     {
         return [
             'uuid' => $this->uuid,
             'full_name' => $this->full_name,
-            'type' => $this->type,
-            'cpf' => $this->cpf,
+            'type' => $this->getType(),
+            'cpf' => $this->Cpf->getCpfUnmasked(),
             'cnpj' => $this->cnpj,
             'email' => $this->email,
             'pass' => $this->pass

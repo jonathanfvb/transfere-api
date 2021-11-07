@@ -11,4 +11,3 @@ class UserModel extends Model
         $this->setSource('user');
     }
 }
-
