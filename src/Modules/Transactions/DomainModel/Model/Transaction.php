@@ -11,10 +11,13 @@ class Transaction implements Arrayable
     
     public float $ammount;
     
-    public int $success;
+    public string $status;
     
     /** @var \DateTimeImmutable */
     public \DateTimeImmutable $CreatedAt;
+    
+    /** @var \DateTimeImmutable */
+    public ?\DateTimeImmutable $UpdatedAt = null;
     
     /** @var User */
     public User $Payer;
@@ -28,8 +31,9 @@ class Transaction implements Arrayable
         return [
             'uuid' => $this->uuid,
             'ammount' => $this->ammount,
-            'success' => $this->success,
+            'status' => $this->status,
             'created_at' => $this->CreatedAt->format('Y-m-d H:i:s'),
+            'updated_at' => $this->UpdatedAt ? $this->UpdatedAt->format('Y-m-d H:i:s') : null,
             'user_payer_uuid' => $this->Payer->uuid,
             'user_payee_uuid' => $this->Payee->uuid
         ];

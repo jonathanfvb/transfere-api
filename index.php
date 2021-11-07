@@ -6,22 +6,15 @@ use Phalcon\Mvc\Micro;
 use Phalcon\Di\FactoryDefault;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 
+use Api\Container\BuilderContainer;
 use Api\Modules\Users\DomaiModel\UseCase\CommonUserRegister;
-use Api\Modules\Users\Persistence\Phalcon\UserRepository;
-use Api\Library\Util\PhalconUuidGenerator;
 use Api\Modules\Users\DomaiModel\UseCase\CommonUserRegisterRequest;
-use Api\Library\Util\HashPassword;
 use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegister;
 use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegisterRequest;
-use Api\Modules\UserWallet\Persistence\Phalcon\UserWalletRepository;
-use Api\Modules\Users\DomaiModel\Model\User;
-use Api\Library\ValueObject\Cpf;
-use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
-use Api\Modules\Transactions\DomainModel\Model\Transaction;
-use Api\Modules\Transactions\Persistence\Phalcon\TransactionRepository;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionStart;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionStartRequest;
-
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorize;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorizeRequest;
 
 $container = new FactoryDefault();
 $container->set('db', function () {
@@ -31,6 +24,10 @@ $container->set('db', function () {
         'password' => 'root',
         'dbname'   => 'transfere'
     ]);
+});
+
+$container->set('container', function () {
+    return new BuilderContainer();    
 });
 
 $app = new Micro($container);
@@ -47,6 +44,9 @@ $app->get('/', function () use ($app) {
 
 $app->post('/transactions', function () use ($app) {
     try {
+        /** @var \DI\Container $DiContainer */
+        $DiContainer = $app->getDI()->get('container');
+        
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
@@ -55,13 +55,9 @@ $app->post('/transactions', function () use ($app) {
         
         $payload = $app->request->getJsonRawBody();
         
-        // caso de uso para iniciar a transaction
-        $ucTransactionStart = new TransactionStart(
-            new TransactionRepository(), 
-            new UserRepository(), 
-            new UserWalletRepository(), 
-            new PhalconUuidGenerator()
-        );
+        // caso de uso para iniciar a transação        
+        /** @var TransactionStart $ucTransactionStart*/
+        $ucTransactionStart = $DiContainer->get('TransactionStart');
         
         $Response = $ucTransactionStart->execute(
             new TransactionStartRequest(
@@ -89,30 +85,31 @@ $app->post('/transactions', function () use ($app) {
     }
 });
 
-$app->post('/wallet', function () use ($app) {
+$app->put('/transactions', function () use ($app) {
     try {
+        /** @var \DI\Container $DiContainer */
+        $DiContainer = $app->getDI()->get('container');
+        
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
-            'message' => 'Carteira registrada com sucesso'
+            'message' => 'Transação autorizada'
         ];
         
-        $user = $app->request->getJsonRawBody();
+        $payload = $app->request->getJsonRawBody();
         
-        $User = new User();
-        $User->uuid = $user->user_uuid;
-        $User->full_name = 'User 01';
-        $User->Cpf = new Cpf('00000000191');
-        $User->email = 'user1@test.com';
-        $User->pass = '$2y$10$oIKIpDbF5aM.qxtzQrzL7uRxR/SZi0XYp9G3l2HCaQqk752f/h22O';
+        // caso de uso para autorizar a transação
+        /** @var TransactionAuthorize $ucTransactionAuthorize*/
+        $ucTransactionAuthorize = $DiContainer->get('TransactionAuthorize');
         
-        $UserWallet = new UserWallet();
-        $UserWallet->User = $User;
-        $UserWallet->balance = 0;
-        $UserWallet->UpdatedAt = new DateTimeImmutable();
+        $Response = $ucTransactionAuthorize->execute(
+            new TransactionAuthorizeRequest($payload->uuid)
+        );
         
-        $UserWalletRepository = new UserWalletRepository();
-        $UserWalletRepository->persist($UserWallet);
+        $content['data'] = [
+            'uuid' => $Response->transaction_uuid,
+            'status' => $Response->status
+        ];
         
         $app->response->setJsonContent($content);
         return $app->response;
@@ -130,6 +127,9 @@ $app->post('/wallet', function () use ($app) {
 
 $app->post('/users', function () use ($app) {
     try {
+        /** @var \DI\Container $DiContainer */
+        $DiContainer = $app->getDI()->get('container');
+        
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
@@ -139,11 +139,8 @@ $app->post('/users', function () use ($app) {
         $user = $app->request->getJsonRawBody();
         
         // caso de uso para registrar usuário comum
-        $ucCommonUserReg = new CommonUserRegister(
-            new UserRepository(), 
-            new PhalconUuidGenerator(),
-            new HashPassword()
-        );
+        /** @var CommonUserRegister $ucCommonUserReg*/
+        $ucCommonUserReg = $DiContainer->get('CommonUserRegister');
         
         $ucCommonUserReg->execute(
             new CommonUserRegisterRequest(
@@ -170,6 +167,9 @@ $app->post('/users', function () use ($app) {
 
 $app->post('/sellers', function () use ($app) {
     try {
+        /** @var \DI\Container $DiContainer */
+        $DiContainer = $app->getDI()->get('container');
+        
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
@@ -179,11 +179,8 @@ $app->post('/sellers', function () use ($app) {
         $user = $app->request->getJsonRawBody();
         
         // caso de uso para registrar usuário seller
-        $ucSellerUserReg = new SellerUserRegister(
-            new UserRepository(),
-            new PhalconUuidGenerator(),
-            new HashPassword()
-        );
+        /** @var SellerUserRegister $ucSellerUserReg*/
+        $ucSellerUserReg = $DiContainer->get('SellerUserRegister');
         
         $ucSellerUserReg->execute(
             new SellerUserRegisterRequest(

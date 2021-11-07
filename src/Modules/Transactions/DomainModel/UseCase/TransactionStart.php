@@ -9,6 +9,7 @@ use Api\Modules\UserWallet\DomainModel\Repository\UserWalletRepositoryInterface;
 use Api\Modules\Transactions\DomainModel\Model\Transaction;
 use Api\Library\Contracts\UuidGeneratorInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionStartDTO;
+use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 
 class TransactionStart
 {
@@ -57,20 +58,24 @@ class TransactionStart
         if (!$Payee) {
             throw new TransactionException('Payee not found', 404);
         }
+        $PayeeWallet = $this->UserWalletRepository->findByUserUuid($Request->user_payee_uuid);
+        if (!$PayeeWallet) {
+            throw new TransactionException('Payee Wallet not found', 404);
+        }
         
-        // cria a transaction com status pendente
+        // cria a transação com status pendente de autorização
         $Transaction = new Transaction();
         $Transaction->uuid = $this->UuidGenerator->generateUuid();
         $Transaction->ammount = $Request->value;
+        $Transaction->status = TransactionEnum::STATUS_PENDING_AUTHORIZATION;
         $Transaction->Payer = $Payer;
         $Transaction->Payee = $Payee;
         $Transaction->CreatedAt = new \DateTimeImmutable();
-        $Transaction->success = 0;
         
-        // registra a transaction
+        // registra a transação
         $this->TransactionRepository->persist($Transaction);
         
-        // debita o saldo da conta do pagador
+        // debita o saldo da carteira do pagador
         $PayerWallet->balance = $PayerWallet->balance - $Request->value;
         $this->UserWalletRepository->persist($PayerWallet);
         
