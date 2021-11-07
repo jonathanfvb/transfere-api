@@ -6,6 +6,7 @@ use Api\Modules\Users\DomaiModel\Repository\UserRepositoryInterface;
 use Api\Modules\Users\DomaiModel\Exception\UserException;
 use Api\Modules\Users\DomaiModel\Model\User;
 use Api\Library\Contracts\UuidGeneratorInterface;
+use Api\Library\Contracts\HashPasswordInterface;
 
 class CommonUserRegister
 {
@@ -13,13 +14,17 @@ class CommonUserRegister
     
     private UuidGeneratorInterface $UuidGenerator;
     
+    private HashPasswordInterface $HashPassword;
+    
     public function __construct(
         UserRepositoryInterface $UserRepository,
-        UuidGeneratorInterface $UuidGenerator
+        UuidGeneratorInterface $UuidGenerator,
+        HashPasswordInterface $HashPassword
     )
     {
         $this->UserRepository = $UserRepository;
         $this->UuidGenerator = $UuidGenerator;
+        $this->HashPassword = $HashPassword;
     }
     
     public function execute(CommonUserRegisterRequest $Request)
@@ -37,9 +42,8 @@ class CommonUserRegister
         $User->full_name = $Request->full_name;
         $User->cpf = $Request->cpf;
         $User->email = $Request->email;
-        // TODO - crypt password
-        $User->pass = $Request->pass;
-        
+        // Gera o hash do password        
+        $User->pass = $this->HashPassword->generateHashedPassword($Request->pass);
         $this->UserRepository->persist($User);
     }
 }

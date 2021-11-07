@@ -10,6 +10,7 @@ use Api\Modules\Users\DomaiModel\UseCase\CommonUserRegister;
 use Api\Modules\Users\Persistence\Phalcon\UserRepository;
 use Api\Library\Util\PhalconUuidGenerator;
 use Api\Modules\Users\DomaiModel\UseCase\CommonUserRegisterRequest;
+use Api\Library\Util\HashPassword;
 
 
 $container = new FactoryDefault();
@@ -47,7 +48,8 @@ $app->post('/users', function () use ($app) {
         // caso de uso para registrar usuário comum
         $ucCommonUserReg = new CommonUserRegister(
             new UserRepository(), 
-            new PhalconUuidGenerator()
+            new PhalconUuidGenerator(),
+            new HashPassword()
         );
         
         $ucCommonUserReg->execute(
