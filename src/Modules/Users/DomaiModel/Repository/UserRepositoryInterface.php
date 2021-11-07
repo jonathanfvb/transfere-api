@@ -3,6 +3,8 @@
 namespace Api\Modules\Users\DomaiModel\Repository;
 
 use Api\Modules\Users\DomaiModel\Model\User;
+use Api\Library\ValueObject\Cpf;
+use Api\Library\ValueObject\Cnpj;
 
 interface UserRepositoryInterface
 {
@@ -10,9 +12,9 @@ interface UserRepositoryInterface
     
     public function findByUuid(string $uuid): ?User;
     
-    public function findByCpfAndCnpj(string $cpf, ?string $cnpj): ?User;
+    public function findByCpfAndCnpjNull(Cpf $Cpf): ?User;
     
-    public function findByCnpj(string $cnpj): ?User;
+    public function findByCnpj(Cnpj $Cnpj): ?User;
     
     public function findByEmail(string $cnpj): ?User;
 }

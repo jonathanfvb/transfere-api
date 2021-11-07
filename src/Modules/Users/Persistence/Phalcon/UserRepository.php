@@ -7,6 +7,7 @@ use Api\Modules\Users\DomaiModel\Model\User;
 use Api\Modules\Users\DomaiModel\Repository\UserRepositoryInterface;
 use Api\Modules\Users\DomaiModel\Model\UserEnum;
 use Api\Library\ValueObject\Cpf;
+use Api\Library\ValueObject\Cnpj;
 
 class UserRepository extends PhalconAbstractRepository implements UserRepositoryInterface
 {
@@ -36,22 +37,12 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
         }
     }
     
-    public function findByCpfAndCnpj(string $cpf, ?string $cnpj): ?User
+    public function findByCpfAndCnpjNull(Cpf $Cpf): ?User
     {
-        if (empty($cnpj)) {
-            $result = $this->entity->findFirst([
-                'conditions' => 'cpf = :cpf: AND cnpj IS NULL',
-                'bind' => ['cpf' => $cpf]
-            ]);
-        } else {
-            $result = $this->entity->findFirst([
-                'conditions' => 'cpf = :cpf: AND cnpj = :cnpj:',
-                'bind' => [
-                    'cpf' => $cpf,
-                    'cnpj' => $cnpj
-                ]
-            ]);
-        }
+        $result = $this->entity->findFirst([
+            'conditions' => 'cpf = :cpf: AND cnpj IS NULL',
+            'bind' => ['cpf' => $Cpf->getCpfUnmasked()]
+        ]);
         
         if (!$result) {
             return null;
@@ -60,11 +51,11 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
         }
     }
     
-    public function findByCnpj(string $cnpj): ?User
+    public function findByCnpj(Cnpj $Cnpj): ?User
     {
         $result = $this->entity->findFirst([
             'conditions' => 'cnpj = :cnpj:',
-            'bind' => ['cnpj' => $cnpj]
+            'bind' => ['cnpj' => $Cnpj->getCnpjUnmasked()]
         ]);
         
         if (!$result) {
@@ -99,7 +90,7 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
             : UserEnum::TYPE_SELLER
         );
         $User->Cpf = new Cpf($result->cpf);
-        $User->cnpj = $result->cnpj;
+        $User->Cnpj = $result->cnpj ? new Cnpj($result->cnpj) : null;
         $User->email = $result->email;
         $User->pass = $result->pass;
         

@@ -29,6 +29,7 @@ class Cpf
     
     private function validateCpf(string $clean_cpf)
     {
+        // TODO - Incluir algoritmo para validar o CPF
         if (strlen($clean_cpf) != 11) {
             throw new \InvalidArgumentException('Invalid CPF', 400);
         }
