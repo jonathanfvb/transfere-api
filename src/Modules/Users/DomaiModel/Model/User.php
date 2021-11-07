@@ -24,6 +24,7 @@ class User implements Arrayable
     
     public string $pass;
     
+    
     public function getType(): string
     {
         return empty($this->cnpj) ? UserEnum::TYPE_COMMON : UserEnum::TYPE_SELLER;
