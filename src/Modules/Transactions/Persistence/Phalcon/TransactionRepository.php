@@ -19,6 +19,20 @@ class TransactionRepository extends PhalconAbstractRepository implements Transac
         parent::persist($Transaction);
     }
     
+    public function findByUuid(string $uuid): ?Transaction
+    {
+        $result = $this->entity->findFirst([
+            'conditions' => 'uuid = :uuid:',
+            'bind' => ['uuid' => $uuid]
+        ]);
+        
+        if (!$result) {
+            return null;
+        } else {
+            return $this->parsePhalconModelToDomainModel($result);
+        }
+    }
+    
     public static function parsePhalconModelToDomainModel($result): Transaction
     {
         $Transaction = new Transaction();
