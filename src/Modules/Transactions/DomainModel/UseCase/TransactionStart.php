@@ -10,6 +10,7 @@ use Api\Modules\Transactions\DomainModel\Model\Transaction;
 use Api\Library\Contracts\UuidGeneratorInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionStartDTO;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
+use Api\Modules\Users\DomaiModel\Model\UserEnum;
 
 class TransactionStart
 {
@@ -36,7 +37,7 @@ class TransactionStart
     
     public function execute(TransactionStartRequest $Request): TransactionStartDTO
     {
-        if ($Request->value < 0.01 || $Request->value > 999999999999) {
+        if ($Request->value < 0.01 || $Request->value > 999999999999.99) {
             throw new TransactionException('Value not allowed', 400);
         }
         
@@ -47,6 +48,11 @@ class TransactionStart
         $PayerWallet = $this->UserWalletRepository->findByUserUuid($Request->user_payer_uuid);
         if (!$PayerWallet) {
             throw new TransactionException('Payer Wallet not found', 404);
+        }
+        
+        // valida se o pagador não é um lojista
+        if ($Payer->getType() == UserEnum::TYPE_SELLER) {
+            throw new TransactionException('Seller is not allowed to send money', 400);
         }
         
         // valida se há saldo na carteira do usuário
