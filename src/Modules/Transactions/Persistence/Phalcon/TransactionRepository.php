@@ -38,7 +38,8 @@ class TransactionRepository extends PhalconAbstractRepository implements Transac
         $Transaction = new Transaction();
         $Transaction->uuid = $result->uuid;
         $Transaction->ammount = $result->ammount;
-        $Transaction->status = $result->status;
+        $Transaction->status_authorization = $result->status_authorization;
+        $Transaction->status_notification = $result->status_notification;
         
         $CreatedAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->created_at);
         if (!$CreatedAt) {

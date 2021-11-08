@@ -11,7 +11,9 @@ class Transaction implements Arrayable
     
     public float $ammount;
     
-    public string $status;
+    public string $status_authorization;
+    
+    public string $status_notification;
     
     /** @var \DateTimeImmutable */
     public \DateTimeImmutable $CreatedAt;
@@ -31,7 +33,8 @@ class Transaction implements Arrayable
         return [
             'uuid' => $this->uuid,
             'ammount' => $this->ammount,
-            'status' => $this->status,
+            'status_authorization' => $this->status_authorization,
+            'status_notification' => $this->status_notification,
             'created_at' => $this->CreatedAt->format('Y-m-d H:i:s'),
             'updated_at' => $this->UpdatedAt ? $this->UpdatedAt->format('Y-m-d H:i:s') : null,
             'user_payer_uuid' => $this->Payer->uuid,

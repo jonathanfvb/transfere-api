@@ -9,6 +9,7 @@ use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Library\Contracts\Service\NotificationServiceInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionAuthorizeDTO;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
+use Api\Library\Persistence\TransactionManagerInterface;
 
 class TransactionAuthorize
 {
@@ -20,17 +21,21 @@ class TransactionAuthorize
     
     private NotificationServiceInterface $NotificationService;
     
+    private TransactionManagerInterface $TransactionManager;
+    
     public function __construct(
         TransactionRepositoryInterface $TransactionRepository,
         UserWalletRepositoryInterface $UserWalletRepository,
         AuthorizeServiceInterface $AuthorizeService,
-        NotificationServiceInterface $NotificationService
+        NotificationServiceInterface $NotificationService,
+        TransactionManagerInterface $TransactionManager
     )
     {
         $this->TransactionRepository = $TransactionRepository;
         $this->UserWalletRepository = $UserWalletRepository;
         $this->AuthorizeService = $AuthorizeService;
         $this->NotificationService = $NotificationService;
+        $this->TransactionManager = $TransactionManager;
     }
     
     public function execute(TransactionAuthorizeRequest $Request): TransactionAuthorizeDTO
@@ -58,39 +63,79 @@ class TransactionAuthorize
             $Transaction->ammount
         );
         if (!$is_authorized) {
-            // estorna o valor da carteira do pagador
-            $PayerWallet->balance = $PayerWallet->balance + $Transaction->ammount;
-            $this->UserWalletRepository->persist($PayerWallet);
+            try {
+                // instancia a transaction com o bd
+                $dbTransaction = $this->TransactionManager->getTransaction();
+                
+                // seta a transaction no repository
+                $this->UserWalletRepository->setTransaction($dbTransaction);
+                
+                // inicia a transaction
+                $dbTransaction->begin();
+                
+                // estorna o valor da carteira do pagador
+                $PayerWallet->balance = $PayerWallet->balance + $Transaction->ammount;
+                $PayerWallet->UpdatedAt = new \DateTimeImmutable();
+                $this->UserWalletRepository->persist($PayerWallet);
+                
+                // altera o status da transação para não autorizada
+                $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_FAILED;
+                $Transaction->UpdatedAt = new \DateTimeImmutable();
+                $this->TransactionRepository->persist($Transaction);
+                
+                // realiza o commit da transaction
+                $dbTransaction->commit();
+                
+                throw new TransactionException('Transaction unauthorized', 400);
+            } catch (\Exception $e) {
+                throw $e;
+            }
+        }
+        
+        // TRANSAÇÃO AUTORIZADA
+        // -----------------------------------
+        try {
+            // instancia a transaction com o bd
+            $dbTransaction = $this->TransactionManager->getTransaction();
             
-            // altera o status da transação para não autorizada
-            $Transaction->status = TransactionEnum::STATUS_FINISHED_UNAUTHORIZED;
+            // seta a transaction no repository
+            $this->UserWalletRepository->setTransaction($dbTransaction);
+            
+            // inicia a transaction
+            $dbTransaction->begin();
+            
+            // credita o valor para o beneficiário
+            $PayeeWallet->balance = $PayeeWallet->balance + $Transaction->ammount;
+            $PayeeWallet->UpdatedAt = new \DateTimeImmutable();
+            $this->UserWalletRepository->persist($PayeeWallet);
+            
+            // altera o status da transação para autorizada
+            $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_SUCCESS;
             $Transaction->UpdatedAt = new \DateTimeImmutable();
             $this->TransactionRepository->persist($Transaction);
             
-            throw new TransactionException('Transaction unauthorized', 400);
+            // realiza o commit da transaction
+            $dbTransaction->commit();
+        } catch (\Exception $e) {
+            throw $e;
         }
         
-        // credita o valor para o beneficiário
-        $PayeeWallet->balance = $PayeeWallet->balance + $Transaction->ammount;
-        $this->UserWalletRepository->persist($PayeeWallet);
         
-        // altera o status da transação notificação pendente
-        $Transaction->status = TransactionEnum::STATUS_PENDING_NOTIFICATION;
-        $Transaction->UpdatedAt = new \DateTimeImmutable();
-        $this->TransactionRepository->persist($Transaction);
-        
+        // ENVIA NOTIFICAÇÃO
+        // ------------------------------------
         // envia notificação para o beneficiário
         $is_notified = $this->NotificationService->sendNotification($Transaction->Payee);
         if ($is_notified) {
-            // altera o status da transação para autorizada
-            $Transaction->status = TransactionEnum::STATUS_FINISHED_AUTHORIZED;
+            // altera o status da notificação para enviada
+            $Transaction->status_notification = TransactionEnum::NOTIFICATION_SENT;
             $Transaction->UpdatedAt = new \DateTimeImmutable();
             $this->TransactionRepository->persist($Transaction);
         }
         
         return new TransactionAuthorizeDTO(
             $Transaction->uuid, 
-            $Transaction->status
+            $Transaction->status_authorization,
+            $Transaction->status_notification
         );
     }
 }
