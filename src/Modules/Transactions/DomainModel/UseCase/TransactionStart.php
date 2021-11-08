@@ -11,6 +11,7 @@ use Api\Library\Contracts\UuidGeneratorInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionStartDTO;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 use Api\Modules\Users\DomaiModel\Model\UserEnum;
+use Api\Library\Persistence\TransactionManagerInterface;
 
 class TransactionStart
 {
@@ -21,18 +22,22 @@ class TransactionStart
     private UserWalletRepositoryInterface $UserWalletRepository;
     
     private UuidGeneratorInterface $UuidGenerator;
+
+    private TransactionManagerInterface $TransactionManager;
     
     public function __construct(
         TransactionRepositoryInterface $TransactionRepository,
         UserRepositoryInterface $UserRepository,
         UserWalletRepositoryInterface $UserWalletRepository,
-        UuidGeneratorInterface $UuidGenerator
+        UuidGeneratorInterface $UuidGenerator,
+        TransactionManagerInterface $TransactionManager
     )
     {
         $this->TransactionRepository = $TransactionRepository;
         $this->UserRepository = $UserRepository;
         $this->UserWalletRepository = $UserWalletRepository;
         $this->UuidGenerator = $UuidGenerator;
+        $this->TransactionManager = $TransactionManager;
     }
     
     public function execute(TransactionStartRequest $Request): TransactionStartDTO
@@ -69,22 +74,41 @@ class TransactionStart
             throw new TransactionException('Payee Wallet not found', 404);
         }
         
-        // cria a transação com status pendente de autorização
-        $Transaction = new Transaction();
-        $Transaction->uuid = $this->UuidGenerator->generateUuid();
-        $Transaction->ammount = $Request->value;
-        $Transaction->status = TransactionEnum::STATUS_PENDING_AUTHORIZATION;
-        $Transaction->Payer = $Payer;
-        $Transaction->Payee = $Payee;
-        $Transaction->CreatedAt = new \DateTimeImmutable();
-        
-        // registra a transação
-        $this->TransactionRepository->persist($Transaction);
-        
-        // debita o saldo da carteira do pagador
-        $PayerWallet->balance = $PayerWallet->balance - $Request->value;
-        $this->UserWalletRepository->persist($PayerWallet);
-        
-        return new TransactionStartDTO($Transaction->uuid);
+
+        try {
+            // instancia a transaction com o bd
+            $dbTransaction = $this->TransactionManager->getTransaction();
+            
+            // seta a transaction no repository
+            $this->TransactionRepository->setTransaction($dbTransaction);
+            
+            // inicia a transaction
+            $dbTransaction->begin();
+
+            // cria a transação com status pendente de autorização
+            $Transaction = new Transaction();
+            $Transaction->uuid = $this->UuidGenerator->generateUuid();
+            $Transaction->ammount = $Request->value;
+            $Transaction->status = TransactionEnum::STATUS_PENDING_AUTHORIZATION;
+            $Transaction->Payer = $Payer;
+            $Transaction->Payee = $Payee;
+            $Transaction->CreatedAt = new \DateTimeImmutable();
+            
+            // registra a transação
+            $this->TransactionRepository->persist($Transaction);
+            
+            // debita o saldo da carteira do pagador
+            $PayerWallet->balance = $PayerWallet->balance - $Request->value;
+            $PayerWallet->UpdatedAt = new \DateTimeImmutable();
+            $this->UserWalletRepository->persist($PayerWallet);
+
+            // realiza o commit da transaction
+            $dbTransaction->commit();
+            
+            return new TransactionStartDTO($Transaction->uuid);
+
+        } catch (\Exception $e) {
+            throw $e;
+        }
     }
 }

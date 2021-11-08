@@ -2,14 +2,25 @@
 
 namespace Api\Library\Persistence\Phalcon;
 
+use Api\Library\Persistence\RepositoryInterface;
 use Api\Library\Persistence\Exception\PersistenceException;
 
-abstract class PhalconAbstractRepository
+abstract class PhalconAbstractRepository implements RepositoryInterface
 {
     /** @var \Phalcon\Mvc\Model */
     protected ?\Phalcon\Mvc\Model $entity = null;
     
     abstract public static function parsePhalconModelToDomainModel($result);
+    
+    public function setTransaction($transaction)
+    {
+        $this->entity->setTransaction($transaction);
+    }
+    
+    public function getTransaction()
+    {
+        return $this->entity->getTransaction();
+    }
     
     public function persist($model)
     {
