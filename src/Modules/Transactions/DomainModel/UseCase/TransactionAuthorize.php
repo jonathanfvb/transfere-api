@@ -79,7 +79,7 @@ class TransactionAuthorize
                 $this->UserWalletRepository->persist($PayerWallet);
                 
                 // altera o status da transação para não autorizada
-                $Transaction->status = TransactionEnum::STATUS_FINISHED_UNAUTHORIZED;
+                $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_FAILED;
                 $Transaction->UpdatedAt = new \DateTimeImmutable();
                 $this->TransactionRepository->persist($Transaction);
                 
@@ -109,8 +109,8 @@ class TransactionAuthorize
             $PayeeWallet->UpdatedAt = new \DateTimeImmutable();
             $this->UserWalletRepository->persist($PayeeWallet);
             
-            // altera o status da transação notificação pendente
-            $Transaction->status = TransactionEnum::STATUS_PENDING_NOTIFICATION;
+            // altera o status da transação para autorizada
+            $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_SUCCESS;
             $Transaction->UpdatedAt = new \DateTimeImmutable();
             $this->TransactionRepository->persist($Transaction);
             
@@ -126,15 +126,16 @@ class TransactionAuthorize
         // envia notificação para o beneficiário
         $is_notified = $this->NotificationService->sendNotification($Transaction->Payee);
         if ($is_notified) {
-            // altera o status da transação para autorizada
-            $Transaction->status = TransactionEnum::STATUS_FINISHED_AUTHORIZED;
+            // altera o status da notificação para enviada
+            $Transaction->status_notification = TransactionEnum::NOTIFICATION_SENT;
             $Transaction->UpdatedAt = new \DateTimeImmutable();
             $this->TransactionRepository->persist($Transaction);
         }
         
         return new TransactionAuthorizeDTO(
             $Transaction->uuid, 
-            $Transaction->status
+            $Transaction->status_authorization,
+            $Transaction->status_notification
         );
     }
 }

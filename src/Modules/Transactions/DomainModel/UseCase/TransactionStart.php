@@ -85,11 +85,12 @@ class TransactionStart
             // inicia a transaction
             $dbTransaction->begin();
 
-            // cria a transação com status pendente de autorização
+            // cria a transação com status pendente de autorização e notificação
             $Transaction = new Transaction();
             $Transaction->uuid = $this->UuidGenerator->generateUuid();
             $Transaction->ammount = $Request->value;
-            $Transaction->status = TransactionEnum::STATUS_PENDING_AUTHORIZATION;
+            $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_PENDING;
+            $Transaction->status_notification = TransactionEnum::NOTIFICATION_PENDING;
             $Transaction->Payer = $Payer;
             $Transaction->Payee = $Payee;
             $Transaction->CreatedAt = new \DateTimeImmutable();
