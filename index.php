@@ -108,7 +108,8 @@ $app->put('/transactions', function () use ($app) {
         
         $content['data'] = [
             'uuid' => $Response->transaction_uuid,
-            'status' => $Response->status
+            'status_authorization' => $Response->status_authorization,
+            'status_notification' => $Response->status_notification
         ];
         
         $app->response->setJsonContent($content);

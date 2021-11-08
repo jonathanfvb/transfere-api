@@ -3,11 +3,13 @@ namespace Api\Modules\Transactions\DomainModel\Model;
 
 class TransactionEnum
 {
-    CONST STATUS_PENDING_AUTHORIZATION  = 'pending_authorization';
+    CONST AUTHORIZATION_PENDING = 'pending';
     
-    CONST STATUS_PENDING_NOTIFICATION   = 'pending_notification';
+    CONST AUTHORIZATION_SUCCESS = 'authorized';
     
-    CONST STATUS_FINISHED_UNAUTHORIZED  = 'finished_unauthorized';
+    CONST AUTHORIZATION_FAILED = 'unauthorized';
     
-    CONST STATUS_FINISHED_AUTHORIZED    = 'finished_authorized';
+    CONST NOTIFICATION_PENDING = 'pending';
+    
+    CONST NOTIFICATION_SENT = 'sent';
 }

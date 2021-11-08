@@ -5,6 +5,7 @@ namespace Api\Modules\UserWallet\DomainModel\UseCase;
 use Api\Modules\UserWallet\DomainModel\Repository\UserWalletRepositoryInterface;
 use Api\Modules\Users\DomaiModel\Model\User;
 use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
+use Api\Library\Persistence\TransactionManagerInterface;
 
 class UserWalletCreate
 {
@@ -17,8 +18,16 @@ class UserWalletCreate
         $this->UserWalletRepository = $UserWalletRepository;
     }
     
-    public function execute(User $User)
+    public function execute(
+        User $User, 
+        ?TransactionManagerInterface $TransactionManager = null
+    )
     {
+        if (!empty($TransactionManager)) {
+            // seta a transaction no repository
+            $this->UserWalletRepository->setTransaction($TransactionManager->getTransaction());
+        }
+        
         $UserWallet = new UserWallet();
         $UserWallet->User = $User;
         $UserWallet->balance = 0;
