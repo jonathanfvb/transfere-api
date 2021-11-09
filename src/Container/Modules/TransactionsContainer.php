@@ -9,6 +9,7 @@ use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterfa
 use Api\Modules\Transactions\Persistence\Phalcon\TransactionRepository;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSend;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetail;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancel;
 
 class TransactionsContainer extends AbstractContainer
 {
@@ -25,5 +26,6 @@ class TransactionsContainer extends AbstractContainer
         $this->diContainer->set('TransactionAuthorize', \DI\autowire(TransactionAuthorize::class));
         $this->diContainer->set('TransactionNotificationSend', \DI\autowire(TransactionNotificationSend::class));
         $this->diContainer->set('TransactionGetDetail', \DI\autowire(TransactionGetDetail::class));
+        $this->diContainer->set('TransactionCancel', \DI\autowire(TransactionCancel::class));
     }
 }
