@@ -33,6 +33,21 @@ class Transaction implements Arrayable
         return $this->status_authorization == TransactionEnum::AUTHORIZATION_PENDING;
     }
     
+    public function isAuthorized(): bool
+    {
+        return $this->status_authorization == TransactionEnum::AUTHORIZATION_SUCCESS;
+    }
+    
+    public function isNotificationPending(): bool
+    {
+        return $this->status_notification == TransactionEnum::NOTIFICATION_PENDING;
+    }
+    
+    public function isNotificationSent(): bool
+    {
+        return $this->status_notification == TransactionEnum::NOTIFICATION_SENT;
+    }
+    
     public function toArray(): array
     {
         return [
