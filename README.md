@@ -15,3 +15,6 @@ docker-compose build && docker-compose up
 
 ### Acessando a aplicação
 [http://localhost:8080](http://localhost:8080)
+
+### Acessando a documentação
+[Swagger API Doc](http://localhost:8080/docs/)
