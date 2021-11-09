@@ -17,6 +17,8 @@ use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorize;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorizeRequest;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSend;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSendRequest;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetail;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetailRequest;
 
 $container = new FactoryDefault();
 $container->set('db', function () {
@@ -148,6 +150,45 @@ $app->put('/transactions/send-notification', function () use ($app) {
         $ucTransactionNotificationSend->execute(
             new TransactionNotificationSendRequest($payload->uuid)
         );
+        
+        $app->response->setJsonContent($content);
+        return $app->response;
+    } catch (Exception $e) {
+        $code = $e->getCode() ? $e->getCode() : 500;
+        $app->response->setStatusCode($code);
+        $content = [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
+        $app->response->setJsonContent($content);
+        return $app->response;
+    }
+});
+
+$app->get('/transactions/{uuid}', function ($uuid) use ($app) {
+    try {
+        /** @var \DI\Container $DiContainer */
+        $DiContainer = $app->getDI()->get('container');
+        
+        $app->response->setStatusCode(200);
+        $content = [
+            'success' => true,
+            'message' => 'Transaction detail'
+        ];
+        
+        if (empty($uuid)) {
+            throw new Exception('Param uuid is undefined');
+        }
+        
+        // caso de uso para autorizar a transação
+        /** @var TransactionGetDetail $ucTransactionGetDetail*/
+        $ucTransactionGetDetail = $DiContainer->get('TransactionGetDetail');
+        
+        $Response = $ucTransactionGetDetail->execute(
+            new TransactionGetDetailRequest($uuid)
+        );
+        
+        $content['data'] = $Response;
         
         $app->response->setJsonContent($content);
         return $app->response;
