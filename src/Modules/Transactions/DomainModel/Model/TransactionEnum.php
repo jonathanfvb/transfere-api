@@ -9,6 +9,8 @@ class TransactionEnum
     
     CONST AUTHORIZATION_FAILED = 'unauthorized';
     
+    CONST AUTHORIZATION_CANCELLED = 'cancelled';
+    
     CONST NOTIFICATION_PENDING = 'pending';
     
     CONST NOTIFICATION_SENT = 'sent';

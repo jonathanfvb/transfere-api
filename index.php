@@ -19,6 +19,8 @@ use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSend;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSendRequest;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetail;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetailRequest;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancel;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancelRequest;
 
 $container = new FactoryDefault();
 $container->set('db', function () {
@@ -44,6 +46,41 @@ $app->get('/', function () use ($app) {
     ];
     $app->response->setJsonContent($content);
     return $app->response;
+});
+
+$app->get('/transactions/{uuid}', function ($uuid) use ($app) {
+    try {
+        /** @var \DI\Container $DiContainer */
+        $DiContainer = $app->getDI()->get('container');
+        
+        $app->response->setStatusCode(200);
+        $content = [
+            'success' => true,
+            'message' => 'Transaction detail'
+        ];
+        
+        // caso de uso para autorizar a transação
+        /** @var TransactionGetDetail $ucTransactionGetDetail*/
+        $ucTransactionGetDetail = $DiContainer->get('TransactionGetDetail');
+        
+        $Response = $ucTransactionGetDetail->execute(
+            new TransactionGetDetailRequest($uuid)
+            );
+        
+        $content['data'] = $Response;
+        
+        $app->response->setJsonContent($content);
+        return $app->response;
+    } catch (Exception $e) {
+        $code = $e->getCode() ? $e->getCode() : 500;
+        $app->response->setStatusCode($code);
+        $content = [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
+        $app->response->setJsonContent($content);
+        return $app->response;
+    }
 });
 
 $app->post('/transactions', function () use ($app) {
@@ -89,7 +126,7 @@ $app->post('/transactions', function () use ($app) {
     }
 });
 
-$app->put('/transactions', function () use ($app) {
+$app->put('/transactions/authorize', function () use ($app) {
     try {
         /** @var \DI\Container $DiContainer */
         $DiContainer = $app->getDI()->get('container');
@@ -165,7 +202,7 @@ $app->put('/transactions/send-notification', function () use ($app) {
     }
 });
 
-$app->get('/transactions/{uuid}', function ($uuid) use ($app) {
+$app->delete('/transactions/cancel/{uuid}', function ($uuid) use ($app) {
     try {
         /** @var \DI\Container $DiContainer */
         $DiContainer = $app->getDI()->get('container');
@@ -173,22 +210,16 @@ $app->get('/transactions/{uuid}', function ($uuid) use ($app) {
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
-            'message' => 'Transaction detail'
+            'message' => 'Transaction cancelled'
         ];
         
-        if (empty($uuid)) {
-            throw new Exception('Param uuid is undefined');
-        }
+        // caso de uso para cancelar a transação
+        /** @var TransactionCancel $ucTransactionCancel*/
+        $ucTransactionCancel = $DiContainer->get('TransactionCancel');
         
-        // caso de uso para autorizar a transação
-        /** @var TransactionGetDetail $ucTransactionGetDetail*/
-        $ucTransactionGetDetail = $DiContainer->get('TransactionGetDetail');
-        
-        $Response = $ucTransactionGetDetail->execute(
-            new TransactionGetDetailRequest($uuid)
+        $ucTransactionCancel->execute(
+            new TransactionCancelRequest($uuid)
         );
-        
-        $content['data'] = $Response;
         
         $app->response->setJsonContent($content);
         return $app->response;
