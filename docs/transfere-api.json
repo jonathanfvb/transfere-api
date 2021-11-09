@@ -1,0 +1,190 @@
+{
+	"swagger": "2.0",
+	"info": {
+		"title": "Transfere API",
+		"version": "1.0.0",
+		"contact": {
+			"email": "jonathan.fvb@hotmail.com"
+		}
+	},
+	"tags": [
+		{
+			"name": "Common Users"
+		},
+		{
+			"name": "Seller Users"
+		},
+		{
+			"name": "Transactions"
+		}
+	],
+	"paths": {
+		"/users/common": {
+			"post": {
+				"tags": [
+					"Common Users"
+				],
+				"summary": "Creates a common user",
+				"description": "",
+				"consumes": [
+		        	"application/json"
+		        ],
+		        "produces": [
+		          	"application/json"
+		        ],
+				"parameters": [
+		          {
+		            "in": "body",
+		            "name": "body",
+		            "description": "",
+		            "required": true,
+		            "schema": {
+		              "$ref": "#/definitions/UserCommon"
+		            }
+		          }
+		        ],
+				"responses": {
+					"200": {
+						"description": "Success"
+					},
+					"400": {
+						"description": "Already exists a user with this cpf"
+					}
+				}
+			}
+		},
+		"/users/seller": {
+			"post": {
+				"tags": [
+					"Seller Users"
+				],
+				"summary": "Creates a seller user",
+				"description": "",
+				"consumes": [
+		        	"application/json"
+		        ],
+		        "produces": [
+		          	"application/json"
+		        ],
+				"parameters": [
+		          {
+		            "in": "body",
+		            "name": "body",
+		            "description": "",
+		            "required": true,
+		            "schema": {
+		              "$ref": "#/definitions/UserSeller"
+		            }
+		          }
+		        ],
+				"responses": {
+					"200": {
+						"description": "Success"
+					},
+					"400": {
+						"description": "Already exists a user with this cnpj"
+					}
+				}
+			}
+		},
+		"/transactions": {
+			"post": {
+				"tags": [
+					"Transactions"
+				],
+				"summary": "Starts a transaction",
+				"description": "",
+				"consumes": [
+		        	"application/json"
+		        ],
+		        "produces": [
+		          	"application/json"
+		        ],
+				"parameters": [
+		          {
+		            "in": "body",
+		            "name": "body",
+		            "description": "",
+		            "required": true,
+		            "schema": {
+		              "$ref": "#/definitions/TransactionStart"
+		            }
+		          }
+		        ],
+				"responses": {
+					"200": {
+						"description": "Success"
+					},
+					"400": {
+						"description": "Seller is not allowed to send money"
+					}
+				}
+			}
+		}
+	},
+	"definitions": {
+		"UserCommon": {
+			"type": "object",
+			"properties": {
+				"full_name": {
+					"type": "string",
+					"format": "string"
+				},
+				"cpf": {
+					"type": "string",
+					"format": "string"
+				},
+				"email": {
+					"type": "string",
+					"format": "string"
+				},
+				"pass": {
+					"type": "string",
+					"format": "string"
+				}
+			}
+		},
+		"UserSeller": {
+			"type": "object",
+			"properties": {
+				"full_name": {
+					"type": "string",
+					"format": "string"
+				},
+				"cpf": {
+					"type": "string",
+					"format": "string"
+				},
+				"cnpj": {
+					"type": "string",
+					"format": "string"
+				},
+				"email": {
+					"type": "string",
+					"format": "string"
+				},
+				"pass": {
+					"type": "string",
+					"format": "string"
+				}
+			}
+		},
+		"TransactionStart": {
+			"type": "object",
+			"properties": {
+				"value": {
+					"type": "float",
+					"format": "float"
+				},
+				"payer_uuid": {
+					"type": "string",
+					"format": "string"
+				},
+				"payee_uuid": {
+					"type": "string",
+					"format": "string"
+				}
+			}
+		}
+	}
+}
