@@ -28,6 +28,11 @@ class Transaction implements Arrayable
     public User $Payee;
     
     
+    public function isAuthorizationPending(): bool
+    {
+        return $this->status_authorization == TransactionEnum::AUTHORIZATION_PENDING;
+    }
+    
     public function toArray(): array
     {
         return [

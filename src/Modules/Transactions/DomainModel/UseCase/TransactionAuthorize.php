@@ -40,9 +40,18 @@ class TransactionAuthorize
     
     public function execute(TransactionAuthorizeRequest $Request): TransactionAuthorizeDTO
     {
+        // busca a transação
         $Transaction = $this->TransactionRepository->findByUuid($Request->transaction_uuid);
         if (!$Transaction) {
             throw new TransactionException('Transaction not found', 404);
+        }
+        
+        // valida se está pendente de autorização
+        if (!$Transaction->isAuthorizationPending()) {
+            throw new TransactionException(
+                "Transaction can not be authorized. Status: {$Transaction->status_authorization}.", 
+                400
+            );
         }
         
         // busca a carteira do pagador
