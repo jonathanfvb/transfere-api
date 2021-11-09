@@ -15,6 +15,8 @@ use Api\Modules\Transactions\DomainModel\UseCase\TransactionStart;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionStartRequest;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorize;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorizeRequest;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSend;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSendRequest;
 
 $container = new FactoryDefault();
 $container->set('db', function () {
@@ -50,7 +52,7 @@ $app->post('/transactions', function () use ($app) {
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
-            'message' => 'Transação iniciada'
+            'message' => 'Transaction started'
         ];
         
         $payload = $app->request->getJsonRawBody();
@@ -93,7 +95,7 @@ $app->put('/transactions', function () use ($app) {
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
-            'message' => 'Transação autorizada'
+            'message' => 'Transaction authorized'
         ];
         
         $payload = $app->request->getJsonRawBody();
@@ -126,6 +128,41 @@ $app->put('/transactions', function () use ($app) {
     }
 });
 
+$app->put('/transactions/send-notification', function () use ($app) {
+    try {
+        /** @var \DI\Container $DiContainer */
+        $DiContainer = $app->getDI()->get('container');
+        
+        $app->response->setStatusCode(200);
+        $content = [
+            'success' => true,
+            'message' => 'Transaction notification sent'
+        ];
+        
+        $payload = $app->request->getJsonRawBody();
+        
+        // caso de uso para enviar a notificação
+        /** @var TransactionNotificationSend $ucTransactionNotificationSend*/
+        $ucTransactionNotificationSend = $DiContainer->get('TransactionNotificationSend');
+        
+        $ucTransactionNotificationSend->execute(
+            new TransactionNotificationSendRequest($payload->uuid)
+        );
+        
+        $app->response->setJsonContent($content);
+        return $app->response;
+    } catch (Exception $e) {
+        $code = $e->getCode() ? $e->getCode() : 500;
+        $app->response->setStatusCode($code);
+        $content = [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
+        $app->response->setJsonContent($content);
+        return $app->response;
+    }
+});
+
 $app->post('/users', function () use ($app) {
     try {
         /** @var \DI\Container $DiContainer */
@@ -134,10 +171,10 @@ $app->post('/users', function () use ($app) {
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
-            'message' => 'Usuário registrado com sucesso'
+            'message' => 'Common User registered'
         ];
         
-        $user = $app->request->getJsonRawBody();
+        $payload = $app->request->getJsonRawBody();
         
         // caso de uso para registrar usuário comum
         /** @var CommonUserRegister $ucCommonUserReg*/
@@ -145,10 +182,10 @@ $app->post('/users', function () use ($app) {
         
         $ucCommonUserReg->execute(
             new CommonUserRegisterRequest(
-                $user->full_name, 
-                $user->cpf, 
-                $user->email, 
-                $user->pass
+                $payload->full_name, 
+                $payload->cpf, 
+                $payload->email, 
+                $payload->pass
             )
         );
         
@@ -174,10 +211,10 @@ $app->post('/sellers', function () use ($app) {
         $app->response->setStatusCode(200);
         $content = [
             'success' => true,
-            'message' => 'Lojista registrado com sucesso'
+            'message' => 'Seller User registered'
         ];
         
-        $user = $app->request->getJsonRawBody();
+        $payload = $app->request->getJsonRawBody();
         
         // caso de uso para registrar usuário seller
         /** @var SellerUserRegister $ucSellerUserReg*/
@@ -185,11 +222,11 @@ $app->post('/sellers', function () use ($app) {
         
         $ucSellerUserReg->execute(
             new SellerUserRegisterRequest(
-                $user->full_name,
-                $user->cpf,
-                $user->cnpj,
-                $user->email,
-                $user->pass
+                $payload->full_name,
+                $payload->cpf,
+                $payload->cnpj,
+                $payload->email,
+                $payload->pass
             )
         );
         
