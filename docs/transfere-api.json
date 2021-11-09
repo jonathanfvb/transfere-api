@@ -3,16 +3,16 @@
 	"info": {
 		"title": "Transfere API",
 		"version": "1.0.0",
+		"description": "Swagger documentation of Transfere API",
 		"contact": {
 			"email": "jonathan.fvb@hotmail.com"
 		}
 	},
+	"host": "http://localhost:8080",
+	"basePath": "",
 	"tags": [
 		{
-			"name": "Common Users"
-		},
-		{
-			"name": "Seller Users"
+			"name": "Users"
 		},
 		{
 			"name": "Transactions"
@@ -22,7 +22,7 @@
 		"/users/common": {
 			"post": {
 				"tags": [
-					"Common Users"
+					"Users"
 				],
 				"summary": "Creates a common user",
 				"description": "",
@@ -45,10 +45,25 @@
 		        ],
 				"responses": {
 					"200": {
-						"description": "Success"
+						"description": "Success",
+						"examples": {
+							"application/json": {
+								"success": true,
+							    "message": "Common User registered",
+							    "data": {
+									"uuid": "077919d2-503b-4378-ac21-52e53d4fa8ab"
+								}
+							}
+						}
 					},
 					"400": {
-						"description": "Already exists a user with this cpf"
+						"description": "Duplicate cpf",
+						"examples": {
+							"application/json": {
+								"success": false,
+							    "message": "Already exists a user with this cpf"
+							}
+						}
 					}
 				}
 			}
@@ -56,7 +71,7 @@
 		"/users/seller": {
 			"post": {
 				"tags": [
-					"Seller Users"
+					"Users"
 				],
 				"summary": "Creates a seller user",
 				"description": "",
@@ -79,10 +94,25 @@
 		        ],
 				"responses": {
 					"200": {
-						"description": "Success"
+						"description": "Success",
+						"examples": {
+							"application/json": {
+								"success": true,
+							    "message": "Seller User registered",
+							    "data": {
+									"uuid": "33d890aa-03df-4159-8ec4-ee67876c9875"
+								}
+							}
+						}
 					},
 					"400": {
-						"description": "Already exists a user with this cnpj"
+						"description": "Duplicate cnpj",
+						"examples": {
+							"application/json": {
+								"success": false,
+							    "message": "Already exists a user with this cnpj"
+							}
+						}
 					}
 				}
 			}
@@ -113,10 +143,246 @@
 		        ],
 				"responses": {
 					"200": {
-						"description": "Success"
+						"description": "Success",
+						"examples": {
+							"application/json": {
+								"success": true,
+							    "message": "Transaction started",
+							    "data": {
+									"uuid": "7725f6de-6d52-4221-9575-ab20c6a3d0d1"
+								}
+							}
+						}
 					},
 					"400": {
-						"description": "Seller is not allowed to send money"
+						"description": "Seller is not allowed to send money",
+						"examples": {
+							"application/json": {
+								"success": false,
+							    "message": "Seller is not allowed to send money"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/transactions/authorize": {
+			"put": {
+				"tags": [
+					"Transactions"
+				],
+				"summary": "Authorizes a started transaction",
+				"description": "",
+				"consumes": [
+		        	"application/json"
+		        ],
+		        "produces": [
+		          	"application/json"
+		        ],
+				"parameters": [
+		          {
+		            "in": "body",
+		            "name": "body",
+		            "description": "",
+		            "required": true,
+		            "schema": {
+		              "$ref": "#/definitions/TransactionAuthorize"
+		            }
+		          }
+		        ],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"examples": {
+							"application/json": {
+								"success": true,
+							    "message": "Transaction authorized",
+							    "data": {
+									"uuid": "7725f6de-6d52-4221-9575-ab20c6a3d0d1",
+									"status_authorization": "authorized",
+									"status_notification": "pending"
+								}
+							}
+						}
+					},
+					"400": {
+						"description": "Only authorizes a pending transaction",
+						"examples": {
+							"application/json": {
+								"success": false,
+							    "message": "Transaction can not be authorized. Status: cancelled"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/transactions/send-notification": {
+			"put": {
+				"tags": [
+					"Transactions"
+				],
+				"summary": "Sends a notification to an authorized transaction which has the notification pending",
+				"description": "",
+				"consumes": [
+		        	"application/json"
+		        ],
+		        "produces": [
+		          	"application/json"
+		        ],
+				"parameters": [
+		          {
+		            "in": "body",
+		            "name": "body",
+		            "description": "",
+		            "required": true,
+		            "schema": {
+		              "$ref": "#/definitions/TransactionNotificationSend"
+		            }
+		          }
+		        ],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"examples": {
+							"application/json": {
+								"success": true,
+							    "message": "Transaction notification sent"
+							}
+						}
+					},
+					"400": {
+						"description": "Only pending notifications for authorized transactions can be sent",
+						"examples": {
+							"application/json": {
+								"success": false,
+							    "message": "Notification has already been sent"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/transactions/{uuid}": {
+			"get": {
+				"tags": [
+					"Transactions"
+				],
+				"summary": "Finds a transaction by UUID",
+				"description": "",
+				"consumes": [
+		        	"application/json"
+		        ],
+		        "produces": [
+		          	"application/json"
+		        ],
+				"parameters": [
+		          {
+		            "in": "path",
+		            "name": "uuid",
+		            "description": "UUID of a transaction",
+		            "required": true,
+		            "type": "string",
+		            "example": "7725f6de-6d52-4221-9575-ab20c6a3d0d1"
+		          }
+		        ],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"examples": {
+							"application/json": {
+								"success": true,
+							    "message": "Transaction detail",
+								"data": {
+									"uuid": {
+										"type": "string",
+										"example": "7725f6de-6d52-4221-9575-ab20c6a3d0d1"
+									},
+									"amount": {
+										"type": "float",
+										"example": 1
+									},
+									"status_authorization": {
+										"type": "string",
+										"example": "authorized"
+									},
+									"status_notification": {
+										"type": "string",
+										"example": "sent"
+									},
+									"payer_uuid": {
+										"type": "string",
+										"example": "518fc61d-5da4-4a2e-8d2f-75f91bcb9144"
+									},
+									"payee_uuid": {
+										"type": "string",
+										"example": "674e243f-cc34-4415-88a2-599a962f940b"
+									},
+									"created_at": {
+										"type": "string",
+										"example": "2021-11-09 19:52:37"
+									},
+									"updated_at": {
+										"type": "string",
+										"example": "2021-11-09 19:53:38"
+									}
+								}
+							}
+						}
+					},
+					"404": {
+						"description": "Notification not found by UUID",
+						"examples": {
+							"application/json": {
+								"success": false,
+							    "message": "Notification not found"
+							}
+						}
+					}
+				}
+			}
+		},
+		"/transactions/cancel/{uuid}": {
+			"delete": {
+				"tags": [
+					"Transactions"
+				],
+				"summary": "Cancels a pending transaction",
+				"description": "",
+				"consumes": [
+		        	"application/json"
+		        ],
+		        "produces": [
+		          	"application/json"
+		        ],
+				"parameters": [
+		          {
+		            "in": "path",
+		            "name": "uuid",
+		            "description": "UUID of a transaction",
+		            "required": true,
+		            "type": "string",
+		            "example": "7725f6de-6d52-4221-9575-ab20c6a3d0d1"
+		          }
+		        ],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"examples": {
+							"application/json": {
+								"success": true,
+							    "message": "Transaction notification sent"
+							}
+						}
+					},
+					"400": {
+						"description": "Only pending transactions can ben cancelled",
+						"examples": {
+							"application/json": {
+								"success": false,
+							    "message": "Transaction can not be cancelled. Status: authorized."
+							}
+						}
 					}
 				}
 			}
@@ -128,19 +394,19 @@
 			"properties": {
 				"full_name": {
 					"type": "string",
-					"format": "string"
+					"example": "Common User Full Name"
 				},
 				"cpf": {
 					"type": "string",
-					"format": "string"
+					"example": "00000000000"
 				},
 				"email": {
 					"type": "string",
-					"format": "string"
+					"example": "example@example.com"
 				},
 				"pass": {
-					"type": "string",
-					"format": "string"
+					"type": "password",
+					"example": "123"
 				}
 			}
 		},
@@ -149,23 +415,23 @@
 			"properties": {
 				"full_name": {
 					"type": "string",
-					"format": "string"
+					"example": "Seller User Full Name"
 				},
 				"cpf": {
 					"type": "string",
-					"format": "string"
+					"example": "00000000000"
 				},
 				"cnpj": {
 					"type": "string",
-					"format": "string"
+					"example": "11111111111111"
 				},
 				"email": {
 					"type": "string",
-					"format": "string"
+					"example": "example@example.com"
 				},
 				"pass": {
-					"type": "string",
-					"format": "string"
+					"type": "password",
+					"example": "123"
 				}
 			}
 		},
@@ -174,15 +440,35 @@
 			"properties": {
 				"value": {
 					"type": "float",
-					"format": "float"
+					"example": "1.00",
+					"minimum": "0.01",
+					"maximum": "999999999999.99"
 				},
 				"payer_uuid": {
 					"type": "string",
-					"format": "string"
+					"example": "077919d2-503b-4378-ac21-52e53d4fa8ab"
 				},
 				"payee_uuid": {
 					"type": "string",
-					"format": "string"
+					"example": "33d890aa-03df-4159-8ec4-ee67876c9875"
+				}
+			}
+		},
+		"TransactionAuthorize": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"example": "7725f6de-6d52-4221-9575-ab20c6a3d0d1"
+				}
+			}
+		},
+		"TransactionNotificationSend": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"example": "7725f6de-6d52-4221-9575-ab20c6a3d0d1"
 				}
 			}
 		}

@@ -10,6 +10,7 @@ use Api\Library\Contracts\HashPasswordInterface;
 use Api\Library\ValueObject\Cpf;
 use Api\Modules\UserWallet\DomainModel\UseCase\UserWalletCreate;
 use Api\Library\Persistence\TransactionManagerInterface;
+use Api\Modules\Users\DomainModel\DTO\CommonUserRegisterDTO;
 
 class CommonUserRegister
 {
@@ -38,7 +39,7 @@ class CommonUserRegister
         $this->TransactionManager = $TransactionManager;
     }
     
-    public function execute(CommonUserRegisterRequest $Request)
+    public function execute(CommonUserRegisterRequest $Request): CommonUserRegisterDTO
     {
         $Cpf = new Cpf($Request->cpf);
         if ($this->UserRepository->findByCpfAndCnpjNull($Cpf)) {
@@ -76,6 +77,8 @@ class CommonUserRegister
             
             // realiza o commit da transaction
             $dbTransaction->commit();
+            
+            return new CommonUserRegisterDTO($User);
         } catch (\Exception $e) {
             throw $e;
         }

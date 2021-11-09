@@ -11,6 +11,7 @@ use Api\Library\ValueObject\Cpf;
 use Api\Library\ValueObject\Cnpj;
 use Api\Modules\UserWallet\DomainModel\UseCase\UserWalletCreate;
 use Api\Library\Persistence\TransactionManagerInterface;
+use Api\Modules\Users\DomaiModel\DTO\SellerUserRegisterDTO;
 
 class SellerUserRegister
 {
@@ -39,7 +40,7 @@ class SellerUserRegister
         $this->TransactionManager = $TransactionManager;
     }
     
-    public function execute(SellerUserRegisterRequest $Request)
+    public function execute(SellerUserRegisterRequest $Request): SellerUserRegisterDTO
     {
         $Cnpj = new Cnpj($Request->cnpj);
         if ($this->UserRepository->findByCnpj($Cnpj)) {
@@ -78,6 +79,8 @@ class SellerUserRegister
             
             // realiza o commit da transaction
             $dbTransaction->commit();
+            
+            return new SellerUserRegisterDTO($User);
         } catch (\Exception $e) {
             throw $e;
         }

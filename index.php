@@ -235,7 +235,7 @@ $app->delete('/transactions/cancel/{uuid}', function ($uuid) use ($app) {
     }
 });
 
-$app->post('/users', function () use ($app) {
+$app->post('/users/common', function () use ($app) {
     try {
         /** @var \DI\Container $DiContainer */
         $DiContainer = $app->getDI()->get('container');
@@ -252,7 +252,7 @@ $app->post('/users', function () use ($app) {
         /** @var CommonUserRegister $ucCommonUserReg*/
         $ucCommonUserReg = $DiContainer->get('CommonUserRegister');
         
-        $ucCommonUserReg->execute(
+        $Response = $ucCommonUserReg->execute(
             new CommonUserRegisterRequest(
                 $payload->full_name, 
                 $payload->cpf, 
@@ -260,6 +260,8 @@ $app->post('/users', function () use ($app) {
                 $payload->pass
             )
         );
+        
+        $content['data'] = $Response;
         
         $app->response->setJsonContent($content);
         return $app->response;
@@ -275,7 +277,7 @@ $app->post('/users', function () use ($app) {
     }
 });
 
-$app->post('/sellers', function () use ($app) {
+$app->post('/users/sellers', function () use ($app) {
     try {
         /** @var \DI\Container $DiContainer */
         $DiContainer = $app->getDI()->get('container');
@@ -292,7 +294,7 @@ $app->post('/sellers', function () use ($app) {
         /** @var SellerUserRegister $ucSellerUserReg*/
         $ucSellerUserReg = $DiContainer->get('SellerUserRegister');
         
-        $ucSellerUserReg->execute(
+        $Response = $ucSellerUserReg->execute(
             new SellerUserRegisterRequest(
                 $payload->full_name,
                 $payload->cpf,
@@ -301,6 +303,8 @@ $app->post('/sellers', function () use ($app) {
                 $payload->pass
             )
         );
+        
+        $content['data'] = $Response;
         
         $app->response->setJsonContent($content);
         return $app->response;
