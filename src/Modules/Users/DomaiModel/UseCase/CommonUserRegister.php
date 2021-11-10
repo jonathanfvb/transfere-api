@@ -18,7 +18,7 @@ class CommonUserRegister
     
     private UuidGeneratorInterface $uuidGenerator;
     
-    private HashPasswordInterface $HashPassword;
+    private HashPasswordInterface $hashPassword;
     
     private UserWalletCreate $userWalletCreate;
     
@@ -27,14 +27,14 @@ class CommonUserRegister
     public function __construct(
         UserRepositoryInterface $userRepository,
         UuidGeneratorInterface $uuidGenerator,
-        HashPasswordInterface $HashPassword,
+        HashPasswordInterface $hashPassword,
         UserWalletCreate $userWalletCreate,
         TransactionManagerInterface $transactionManager
     )
     {
         $this->userRepository = $userRepository;
         $this->uuidGenerator = $uuidGenerator;
-        $this->hashPassword = $HashPassword;
+        $this->hashPassword = $hashPassword;
         $this->userWalletCreate = $userWalletCreate;
         $this->transactionManager = $transactionManager;
     }

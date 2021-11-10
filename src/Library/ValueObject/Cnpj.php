@@ -2,6 +2,8 @@
 
 namespace Api\Library\ValueObject;
 
+use \InvalidArgumentException;
+
 class Cnpj
 {
     private string $cleanCnpj;
@@ -31,7 +33,7 @@ class Cnpj
     {
         // TODO - Incluir algoritmo para validar o CNPJ
         if (strlen($cleanCnpj) != 14) {
-            throw new \InvalidArgumentException('Invalid CNPJ', 400);
+            throw new InvalidArgumentException('Invalid CNPJ', 400);
         }
     }
     

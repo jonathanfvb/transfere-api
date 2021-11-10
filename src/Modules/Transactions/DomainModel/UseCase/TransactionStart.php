@@ -12,6 +12,7 @@ use Api\Modules\Transactions\DomainModel\DTO\TransactionStartDTO;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 use Api\Modules\Users\DomaiModel\Model\UserEnum;
 use Api\Library\Persistence\TransactionManagerInterface;
+use \DateTimeImmutable;
 
 class TransactionStart
 {
@@ -93,14 +94,14 @@ class TransactionStart
             $transaction->statusNotification = TransactionEnum::NOTIFICATION_PENDING;
             $transaction->payer = $payer;
             $transaction->payee = $payee;
-            $transaction->createdAt = new \DateTimeImmutable();
+            $transaction->createdAt = new DateTimeImmutable();
             
             // registra a transação
             $this->transactionRepository->persist($transaction);
             
             // debita o saldo da carteira do pagador
             $payerWallet->balance = $payerWallet->balance - $request->value;
-            $payerWallet->updatedAt = new \DateTimeImmutable();
+            $payerWallet->updatedAt = new DateTimeImmutable();
             $this->userWalletRepository->persist($payerWallet);
 
             // realiza o commit da transaction

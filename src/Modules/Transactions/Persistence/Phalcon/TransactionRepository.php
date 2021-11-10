@@ -7,6 +7,9 @@ use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterfa
 use Api\Modules\Transactions\DomainModel\Model\Transaction;
 use Api\Modules\Users\Persistence\Phalcon\UserRepository;
 
+use \DateTimeImmutable;
+use \InvalidArgumentException;
+
 class TransactionRepository extends PhalconAbstractRepository implements TransactionRepositoryInterface
 {
     public function __construct()
@@ -41,24 +44,24 @@ class TransactionRepository extends PhalconAbstractRepository implements Transac
         $transaction->statusAuthorization = $result->status_authorization;
         $transaction->statusNotification = $result->status_notification;
         
-        $createdAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->created_at);
-        if (!$createdAt) {
-            throw new \InvalidArgumentException(
+        try {
+            $createdAt = new DateTimeImmutable($result->created_at);
+            $transaction->createdAt = $createdAt;
+        } catch (\Exception $e) {
+            throw new InvalidArgumentException(
                 "The field created_at isn't in the format 'Y-m-d H:i:s'",
                 400
-            );
+            );            
         }
-        $transaction->createdAt = $createdAt;
         
-        if ($result->updated_at) {
-            $updatedAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->updated_at);
-            if (!$updatedAt) {
-                throw new \InvalidArgumentException(
-                    "The field updated_at isn't in the format 'Y-m-d H:i:s'",
-                    400
-                );
-            }
+        try {
+            $updatedAt = new DateTimeImmutable($result->updated_at);
             $transaction->updatedAt = $updatedAt;
+        } catch (\Exception $e) {
+            throw new InvalidArgumentException(
+                "The field updated_at isn't in the format 'Y-m-d H:i:s'",
+                400
+            );
         }
         
         $transaction->payer = UserRepository::parsePhalconModelToDomainModel($result->Payer);

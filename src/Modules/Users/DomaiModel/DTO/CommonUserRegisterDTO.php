@@ -8,8 +8,8 @@ class CommonUserRegisterDTO
 {
     public string $uuid;
     
-    public function __construct(User $User)
+    public function __construct(User $user)
     {
-        $this->uuid = $User->uuid;
+        $this->uuid = $user->uuid;
     }
 }

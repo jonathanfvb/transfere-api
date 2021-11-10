@@ -7,6 +7,9 @@ use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
 use Api\Modules\UserWallet\DomainModel\Repository\UserWalletRepositoryInterface;
 use Api\Modules\Users\Persistence\Phalcon\UserRepository;
 
+use \DateTimeImmutable;
+use \InvalidArgumentException;
+
 class UserWalletRepository extends PhalconAbstractRepository implements UserWalletRepositoryInterface
 {
     public function __construct()
@@ -39,14 +42,15 @@ class UserWalletRepository extends PhalconAbstractRepository implements UserWall
         $userWallet->User = UserRepository::parsePhalconModelToDomainModel($result->User);
         $userWallet->balance = $result->balance;
         
-        $updatedAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->updated_at);
-        if (!$updatedAt) {
-            throw new \InvalidArgumentException(
-                "The field updated_at isn't in the format 'Y-m-d H:i:s'", 
+        try {
+            $updatedAt = new DateTimeImmutable($result->updated_at);
+            $userWallet->updatedAt = $updatedAt;
+        } catch (\Exception $e) {
+            throw new InvalidArgumentException(
+                "The field updated_at isn't in the format 'Y-m-d H:i:s'",
                 400
             );
         }
-        $userWallet->updatedAt = $updatedAt;
         
         return $userWallet;
     }   

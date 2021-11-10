@@ -10,6 +10,7 @@ use Api\Library\Contracts\Service\NotificationServiceInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionAuthorizeDTO;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 use Api\Library\Persistence\TransactionManagerInterface;
+use \DateTimeImmutable;
 
 class TransactionAuthorize
 {
@@ -84,12 +85,12 @@ class TransactionAuthorize
                 
                 // estorna o valor da carteira do pagador
                 $payerWallet->balance = $payerWallet->balance + $transaction->ammount;
-                $payerWallet->updatedAt = new \DateTimeImmutable();
+                $payerWallet->updatedAt = new DateTimeImmutable();
                 $this->userWalletRepository->persist($payerWallet);
                 
                 // altera o status da transação para não autorizada
                 $transaction->statusAuthorization = TransactionEnum::AUTHORIZATION_FAILED;
-                $transaction->updatedAt = new \DateTimeImmutable();
+                $transaction->updatedAt = new DateTimeImmutable();
                 $this->transactionRepository->persist($transaction);
                 
                 // realiza o commit da transaction
@@ -115,12 +116,12 @@ class TransactionAuthorize
             
             // credita o valor para o beneficiário
             $payeeWallet->balance = $payeeWallet->balance + $transaction->ammount;
-            $payeeWallet->updatedAt = new \DateTimeImmutable();
+            $payeeWallet->updatedAt = new DateTimeImmutable();
             $this->userWalletRepository->persist($payeeWallet);
             
             // altera o status da transação para autorizada
             $transaction->statusAuthorization = TransactionEnum::AUTHORIZATION_SUCCESS;
-            $transaction->updatedAt = new \DateTimeImmutable();
+            $transaction->updatedAt = new DateTimeImmutable();
             $this->transactionRepository->persist($transaction);
             
             // realiza o commit da transaction
@@ -137,7 +138,7 @@ class TransactionAuthorize
         if ($isNotified) {
             // altera o status da notificação para enviada
             $transaction->statusNotification = TransactionEnum::NOTIFICATION_SENT;
-            $transaction->updatedAt = new \DateTimeImmutable();
+            $transaction->updatedAt = new DateTimeImmutable();
             $this->transactionRepository->persist($transaction);
         }
         

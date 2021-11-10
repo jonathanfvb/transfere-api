@@ -5,6 +5,7 @@ namespace Api\Modules\Transactions\DomainModel\UseCase;
 use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterface;
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
+use \DateTimeImmutable;
 
 class TransactionCancel
 {
@@ -35,7 +36,7 @@ class TransactionCancel
         
         // cancela a transação
         $transaction->statusAuthorization = TransactionEnum::AUTHORIZATION_CANCELLED;
-        $transaction->updatedAt = new \DateTimeImmutable();
+        $transaction->updatedAt = new DateTimeImmutable();
         $this->transactionRepository->persist($transaction);
     }
 }

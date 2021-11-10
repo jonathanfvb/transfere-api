@@ -6,6 +6,7 @@ use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterfa
 use Api\Library\Contracts\Service\NotificationServiceInterface;
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
+use \DateTimeImmutable;
 
 class TransactionNotificationSend
 {
@@ -54,7 +55,7 @@ class TransactionNotificationSend
         
         // altera o status da notificação para enviada
         $transaction->statusNotification = TransactionEnum::NOTIFICATION_SENT;
-        $transaction->updatedAt = new \DateTimeImmutable();
+        $transaction->updatedAt = new DateTimeImmutable();
         $this->transactionRepository->persist($transaction);
     }
 }

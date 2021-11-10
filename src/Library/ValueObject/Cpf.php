@@ -2,6 +2,8 @@
 
 namespace Api\Library\ValueObject;
 
+use \InvalidArgumentException;
+
 class Cpf
 {
     private string $cleanCpf;
@@ -31,7 +33,7 @@ class Cpf
     {
         // TODO - Incluir algoritmo para validar o CPF
         if (strlen($cleanCpf) != 11) {
-            throw new \InvalidArgumentException('Invalid CPF', 400);
+            throw new InvalidArgumentException('Invalid CPF', 400);
         }
     }
     

@@ -7,6 +7,8 @@ use Api\Modules\Users\DomaiModel\Model\User;
 use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
 use Api\Library\Persistence\TransactionManagerInterface;
 
+use \DateTimeImmutable;
+
 class UserWalletCreate
 {
     private UserWalletRepositoryInterface $userWalletRepository;
@@ -19,7 +21,7 @@ class UserWalletCreate
     }
     
     public function execute(
-        User $User, 
+        User $user, 
         ?TransactionManagerInterface $transactionManager = null
     )
     {
@@ -29,9 +31,9 @@ class UserWalletCreate
         }
         
         $userWallet = new UserWallet();
-        $userWallet->User = $User;
+        $userWallet->User = $user;
         $userWallet->balance = 0;
-        $userWallet->updatedAt = new \DateTimeImmutable();
+        $userWallet->updatedAt = new DateTimeImmutable();
         
         $this->userWalletRepository->persist($userWallet);
     }
