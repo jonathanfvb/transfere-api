@@ -4,7 +4,7 @@ namespace Api\Library\Contracts;
 
 interface HashPasswordInterface
 {
-    public function generateHashedPassword(string $plain_password);
+    public function generateHashedPassword(string $plainPassword);
     
-    public function verifyPassword(string $plain_password, string $hashed_password);
+    public function verifyPassword(string $plainPassword, string $hashedPassword);
 }

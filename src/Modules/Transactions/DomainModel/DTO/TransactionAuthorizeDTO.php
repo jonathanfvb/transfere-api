@@ -4,20 +4,20 @@ namespace Api\Modules\Transactions\DomainModel\DTO;
 
 class TransactionAuthorizeDTO
 {
-    public string $transaction_uuid;
+    public string $transactionUuid;
     
-    public string $status_authorization;
+    public string $statusAuthorization;
     
-    public string $status_notification;
+    public string $statusNotification;
     
     public function __construct(
-        string $transaction_uuid,
-        string $status_authorization,
-        string $status_notification
+        string $transactionUuid,
+        string $statusAuthorization,
+        string $statusNotification
     )
     {
-        $this->transaction_uuid = $transaction_uuid;
-        $this->status_authorization = $status_authorization;
-        $this->status_notification = $status_notification;
+        $this->transactionUuid = $transactionUuid;
+        $this->statusAuthorization = $statusAuthorization;
+        $this->statusNotification = $statusNotification;
     }
 }

@@ -13,84 +13,84 @@ use Api\Library\Persistence\TransactionManagerInterface;
 
 class TransactionAuthorize
 {
-    private TransactionRepositoryInterface $TransactionRepository;
+    private TransactionRepositoryInterface $transactionRepository;
     
-    private UserWalletRepositoryInterface $UserWalletRepository;
+    private UserWalletRepositoryInterface $userWalletRepository;
     
-    private AuthorizeServiceInterface $AuthorizeService;
+    private AuthorizeServiceInterface $authorizeService;
     
-    private NotificationServiceInterface $NotificationService;
+    private NotificationServiceInterface $notificationService;
     
-    private TransactionManagerInterface $TransactionManager;
+    private TransactionManagerInterface $transactionManager;
     
     public function __construct(
-        TransactionRepositoryInterface $TransactionRepository,
-        UserWalletRepositoryInterface $UserWalletRepository,
-        AuthorizeServiceInterface $AuthorizeService,
-        NotificationServiceInterface $NotificationService,
-        TransactionManagerInterface $TransactionManager
+        TransactionRepositoryInterface $transactionRepository,
+        UserWalletRepositoryInterface $userWalletRepository,
+        AuthorizeServiceInterface $authorizeService,
+        NotificationServiceInterface $notificationService,
+        TransactionManagerInterface $transactionManager
     )
     {
-        $this->TransactionRepository = $TransactionRepository;
-        $this->UserWalletRepository = $UserWalletRepository;
-        $this->AuthorizeService = $AuthorizeService;
-        $this->NotificationService = $NotificationService;
-        $this->TransactionManager = $TransactionManager;
+        $this->transactionRepository = $transactionRepository;
+        $this->userWalletRepository = $userWalletRepository;
+        $this->authorizeService = $authorizeService;
+        $this->notificationService = $notificationService;
+        $this->transactionManager = $transactionManager;
     }
     
-    public function execute(TransactionAuthorizeRequest $Request): TransactionAuthorizeDTO
+    public function execute(TransactionAuthorizerequest $request): TransactionAuthorizeDTO
     {
         // busca a transação
-        $Transaction = $this->TransactionRepository->findByUuid($Request->transaction_uuid);
-        if (!$Transaction) {
+        $transaction = $this->transactionRepository->findByUuid($request->transactionUuid);
+        if (!$transaction) {
             throw new TransactionException('Transaction not found', 404);
         }
         
         // valida se está pendente de autorização
-        if (!$Transaction->isAuthorizationPending()) {
+        if (!$transaction->isAuthorizationPending()) {
             throw new TransactionException(
-                "Transaction can not be authorized. Status: {$Transaction->status_authorization}.", 
+                "Transaction can not be authorized. Status: {$transaction->statusAuthorization}.", 
                 400
             );
         }
         
         // busca a carteira do pagador
-        $PayerWallet = $this->UserWalletRepository->findByUserUuid($Transaction->Payer->uuid);
-        if (!$PayerWallet) {
-            throw new TransactionException('Payer Wallet not found', 404);
+        $payerWallet = $this->userWalletRepository->findByUserUuid($transaction->payer->uuid);
+        if (!$payerWallet) {
+            throw new TransactionException('payer Wallet not found', 404);
         }
         
         // busca a carteira do beneficiário
-        $PayeeWallet = $this->UserWalletRepository->findByUserUuid($Transaction->Payee->uuid);
-        if (!$PayeeWallet) {
-            throw new TransactionException('Payee Wallet not found', 404);
+        $payeeWallet = $this->userWalletRepository->findByUserUuid($transaction->payee->uuid);
+        if (!$payeeWallet) {
+            throw new TransactionException('payee Wallet not found', 404);
         }
         
         // consulta o serviço de autorização
-        $is_authorized = $this->AuthorizeService->authorize(
-            $Transaction->Payer, 
-            $Transaction->ammount
+        $isAuthorized = $this->authorizeService->authorize(
+            $transaction->payer, 
+            $transaction->ammount
         );
-        if (!$is_authorized) {
+        if (!$isAuthorized) {
             try {
                 // instancia a transaction com o bd
-                $dbTransaction = $this->TransactionManager->getTransaction();
+                $dbTransaction = $this->transactionManager->getTransaction();
                 
                 // seta a transaction no repository
-                $this->UserWalletRepository->setTransaction($dbTransaction);
+                $this->userWalletRepository->setTransaction($dbTransaction);
                 
                 // inicia a transaction
                 $dbTransaction->begin();
                 
                 // estorna o valor da carteira do pagador
-                $PayerWallet->balance = $PayerWallet->balance + $Transaction->ammount;
-                $PayerWallet->UpdatedAt = new \DateTimeImmutable();
-                $this->UserWalletRepository->persist($PayerWallet);
+                $payerWallet->balance = $payerWallet->balance + $transaction->ammount;
+                $payerWallet->updatedAt = new \DateTimeImmutable();
+                $this->userWalletRepository->persist($payerWallet);
                 
                 // altera o status da transação para não autorizada
-                $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_FAILED;
-                $Transaction->UpdatedAt = new \DateTimeImmutable();
-                $this->TransactionRepository->persist($Transaction);
+                $transaction->statusAuthorization = TransactionEnum::AUTHORIZATION_FAILED;
+                $transaction->updatedAt = new \DateTimeImmutable();
+                $this->transactionRepository->persist($transaction);
                 
                 // realiza o commit da transaction
                 $dbTransaction->commit();
@@ -105,23 +105,23 @@ class TransactionAuthorize
         // -----------------------------------
         try {
             // instancia a transaction com o bd
-            $dbTransaction = $this->TransactionManager->getTransaction();
+            $dbTransaction = $this->transactionManager->getTransaction();
             
             // seta a transaction no repository
-            $this->UserWalletRepository->setTransaction($dbTransaction);
+            $this->userWalletRepository->setTransaction($dbTransaction);
             
             // inicia a transaction
             $dbTransaction->begin();
             
             // credita o valor para o beneficiário
-            $PayeeWallet->balance = $PayeeWallet->balance + $Transaction->ammount;
-            $PayeeWallet->UpdatedAt = new \DateTimeImmutable();
-            $this->UserWalletRepository->persist($PayeeWallet);
+            $payeeWallet->balance = $payeeWallet->balance + $transaction->ammount;
+            $payeeWallet->updatedAt = new \DateTimeImmutable();
+            $this->userWalletRepository->persist($payeeWallet);
             
             // altera o status da transação para autorizada
-            $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_SUCCESS;
-            $Transaction->UpdatedAt = new \DateTimeImmutable();
-            $this->TransactionRepository->persist($Transaction);
+            $transaction->statusAuthorization = TransactionEnum::AUTHORIZATION_SUCCESS;
+            $transaction->updatedAt = new \DateTimeImmutable();
+            $this->transactionRepository->persist($transaction);
             
             // realiza o commit da transaction
             $dbTransaction->commit();
@@ -133,18 +133,18 @@ class TransactionAuthorize
         // ENVIA NOTIFICAÇÃO
         // ------------------------------------
         // envia notificação para o beneficiário
-        $is_notified = $this->NotificationService->sendNotification($Transaction->Payee);
-        if ($is_notified) {
+        $isNotified = $this->notificationService->sendNotification($transaction->payee);
+        if ($isNotified) {
             // altera o status da notificação para enviada
-            $Transaction->status_notification = TransactionEnum::NOTIFICATION_SENT;
-            $Transaction->UpdatedAt = new \DateTimeImmutable();
-            $this->TransactionRepository->persist($Transaction);
+            $transaction->statusNotification = TransactionEnum::NOTIFICATION_SENT;
+            $transaction->updatedAt = new \DateTimeImmutable();
+            $this->transactionRepository->persist($transaction);
         }
         
         return new TransactionAuthorizeDTO(
-            $Transaction->uuid, 
-            $Transaction->status_authorization,
-            $Transaction->status_notification
+            $transaction->uuid, 
+            $transaction->statusAuthorization,
+            $transaction->statusNotification
         );
     }
 }

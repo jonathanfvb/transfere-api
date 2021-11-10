@@ -4,7 +4,7 @@ namespace Api\Modules\Users\DomaiModel\UseCase;
 
 class CommonUserRegisterRequest
 {
-    public string $full_name;
+    public string $fullName;
     
     public string $cpf;
     
@@ -13,13 +13,13 @@ class CommonUserRegisterRequest
     public string $pass;
     
     public function __construct(
-        string $full_name,
+        string $fullName,
         string $cpf,
         string $email,
         string $pass
     )
     {
-        $this->full_name = $full_name;
+        $this->fullName = $fullName;
         $this->cpf = $cpf;
         $this->email = $email;
         $this->pass = $pass;

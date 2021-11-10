@@ -4,22 +4,22 @@ namespace Api\Library\ValueObject;
 
 class Cpf
 {
-    private string $clean_cpf;
+    private string $cleanCpf;
     
     public function __construct(string $cpf)
     {        
-        $this->clean_cpf = $this->cleanCpf($cpf);
-        $this->validateCpf($this->clean_cpf);
+        $this->cleanCpf = $this->cleanCpf($cpf);
+        $this->validateCpf($this->cleanCpf);
     }
     
     public function getCpfUnmasked(): string
     {
-        return $this->clean_cpf;
+        return $this->cleanCpf;
     }
     
     public function getCpfMasked(): string
     {
-        return $this->maskCpf($this->clean_cpf);
+        return $this->maskCpf($this->cleanCpf);
     }
     
     private function cleanCpf(string $cpf)
@@ -27,19 +27,19 @@ class Cpf
         return preg_replace( '/[^0-9]/', '', $cpf);
     }
     
-    private function validateCpf(string $clean_cpf)
+    private function validateCpf(string $cleanCpf)
     {
         // TODO - Incluir algoritmo para validar o CPF
-        if (strlen($clean_cpf) != 11) {
+        if (strlen($cleanCpf) != 11) {
             throw new \InvalidArgumentException('Invalid CPF', 400);
         }
     }
     
-    private function maskCpf(string $clean_cpf)
+    private function maskCpf(string $cleanCpf)
     {
-        return substr($clean_cpf, 0, 3)
-            .'.'.substr($clean_cpf, 3, 3)
-            .'.'.substr($clean_cpf, 6, 3)
-            .'-'.substr($clean_cpf, 9);
+        return substr($cleanCpf, 0, 3)
+            .'.'.substr($cleanCpf, 3, 3)
+            .'.'.substr($cleanCpf, 6, 3)
+            .'-'.substr($cleanCpf, 9);
     }
 }

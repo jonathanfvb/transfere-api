@@ -15,98 +15,98 @@ use Api\Library\Persistence\TransactionManagerInterface;
 
 class TransactionStart
 {
-    private TransactionRepositoryInterface $TransactionRepository;
+    private TransactionRepositoryInterface $transactionRepository;
     
-    private UserRepositoryInterface $UserRepository;
+    private UserRepositoryInterface $userRepository;
     
-    private UserWalletRepositoryInterface $UserWalletRepository;
+    private UserWalletRepositoryInterface $userWalletRepository;
     
-    private UuidGeneratorInterface $UuidGenerator;
+    private UuidGeneratorInterface $uuidGenerator;
 
-    private TransactionManagerInterface $TransactionManager;
+    private TransactionManagerInterface $transactionManager;
     
     public function __construct(
-        TransactionRepositoryInterface $TransactionRepository,
-        UserRepositoryInterface $UserRepository,
-        UserWalletRepositoryInterface $UserWalletRepository,
-        UuidGeneratorInterface $UuidGenerator,
-        TransactionManagerInterface $TransactionManager
+        TransactionRepositoryInterface $transactionRepository,
+        UserRepositoryInterface $userRepository,
+        UserWalletRepositoryInterface $userWalletRepository,
+        UuidGeneratorInterface $uuidGenerator,
+        TransactionManagerInterface $transactionManager
     )
     {
-        $this->TransactionRepository = $TransactionRepository;
-        $this->UserRepository = $UserRepository;
-        $this->UserWalletRepository = $UserWalletRepository;
-        $this->UuidGenerator = $UuidGenerator;
-        $this->TransactionManager = $TransactionManager;
+        $this->transactionRepository = $transactionRepository;
+        $this->userRepository = $userRepository;
+        $this->userWalletRepository = $userWalletRepository;
+        $this->uuidGenerator = $uuidGenerator;
+        $this->transactionManager = $transactionManager;
     }
     
-    public function execute(TransactionStartRequest $Request): TransactionStartDTO
+    public function execute(TransactionStartrequest $request): TransactionStartDTO
     {
-        if ($Request->value < 0.01 || $Request->value > 999999999999.99) {
+        if ($request->value < 0.01 || $request->value > 999999999999.99) {
             throw new TransactionException('Value not allowed', 400);
         }
         
-        $Payer = $this->UserRepository->findByUuid($Request->user_payer_uuid);
-        if (!$Payer) {
-            throw new TransactionException('Payer not found', 404);
+        $payer = $this->userRepository->findByUuid($request->userPayerUuid);
+        if (!$payer) {
+            throw new TransactionException('payer not found', 404);
         }
-        $PayerWallet = $this->UserWalletRepository->findByUserUuid($Request->user_payer_uuid);
-        if (!$PayerWallet) {
-            throw new TransactionException('Payer Wallet not found', 404);
+        $payerWallet = $this->userWalletRepository->findByUserUuid($request->userPayerUuid);
+        if (!$payerWallet) {
+            throw new TransactionException('payer Wallet not found', 404);
         }
         
         // valida se o pagador não é um lojista
-        if ($Payer->getType() == UserEnum::TYPE_SELLER) {
+        if ($payer->getType() == UserEnum::TYPE_SELLER) {
             throw new TransactionException('Seller is not allowed to send money', 400);
         }
         
         // valida se há saldo na carteira do usuário
-        if ($Request->value > $PayerWallet->balance) {
+        if ($request->value > $payerWallet->balance) {
             throw new TransactionException('Balance unavailable', 400);
         }
         
-        $Payee = $this->UserRepository->findByUuid($Request->user_payee_uuid);
-        if (!$Payee) {
-            throw new TransactionException('Payee not found', 404);
+        $payee = $this->userRepository->findByUuid($request->userPayeeUuid);
+        if (!$payee) {
+            throw new TransactionException('payee not found', 404);
         }
-        $PayeeWallet = $this->UserWalletRepository->findByUserUuid($Request->user_payee_uuid);
-        if (!$PayeeWallet) {
-            throw new TransactionException('Payee Wallet not found', 404);
+        $payeeWallet = $this->userWalletRepository->findByUserUuid($request->userPayeeUuid);
+        if (!$payeeWallet) {
+            throw new TransactionException('payee Wallet not found', 404);
         }
         
 
         try {
             // instancia a transaction com o bd
-            $dbTransaction = $this->TransactionManager->getTransaction();
+            $dbTransaction = $this->transactionManager->getTransaction();
             
             // seta a transaction no repository
-            $this->TransactionRepository->setTransaction($dbTransaction);
+            $this->transactionRepository->setTransaction($dbTransaction);
             
             // inicia a transaction
             $dbTransaction->begin();
 
             // cria a transação com status pendente de autorização e notificação
-            $Transaction = new Transaction();
-            $Transaction->uuid = $this->UuidGenerator->generateUuid();
-            $Transaction->ammount = $Request->value;
-            $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_PENDING;
-            $Transaction->status_notification = TransactionEnum::NOTIFICATION_PENDING;
-            $Transaction->Payer = $Payer;
-            $Transaction->Payee = $Payee;
-            $Transaction->CreatedAt = new \DateTimeImmutable();
+            $transaction = new Transaction();
+            $transaction->uuid = $this->uuidGenerator->generateUuid();
+            $transaction->ammount = $request->value;
+            $transaction->statusAuthorization = TransactionEnum::AUTHORIZATION_PENDING;
+            $transaction->statusNotification = TransactionEnum::NOTIFICATION_PENDING;
+            $transaction->payer = $payer;
+            $transaction->payee = $payee;
+            $transaction->createdAt = new \DateTimeImmutable();
             
             // registra a transação
-            $this->TransactionRepository->persist($Transaction);
+            $this->transactionRepository->persist($transaction);
             
             // debita o saldo da carteira do pagador
-            $PayerWallet->balance = $PayerWallet->balance - $Request->value;
-            $PayerWallet->UpdatedAt = new \DateTimeImmutable();
-            $this->UserWalletRepository->persist($PayerWallet);
+            $payerWallet->balance = $payerWallet->balance - $request->value;
+            $payerWallet->updatedAt = new \DateTimeImmutable();
+            $this->userWalletRepository->persist($payerWallet);
 
             // realiza o commit da transaction
             $dbTransaction->commit();
             
-            return new TransactionStartDTO($Transaction->uuid);
+            return new TransactionStartDTO($transaction->uuid);
 
         } catch (\Exception $e) {
             throw $e;

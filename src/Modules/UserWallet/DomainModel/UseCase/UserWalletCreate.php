@@ -9,30 +9,30 @@ use Api\Library\Persistence\TransactionManagerInterface;
 
 class UserWalletCreate
 {
-    private UserWalletRepositoryInterface $UserWalletRepository;
+    private UserWalletRepositoryInterface $userWalletRepository;
     
     public function __construct(
-        UserWalletRepositoryInterface $UserWalletRepository
+        UserWalletRepositoryInterface $userWalletRepository
     )
     {
-        $this->UserWalletRepository = $UserWalletRepository;
+        $this->userWalletRepository = $userWalletRepository;
     }
     
     public function execute(
         User $User, 
-        ?TransactionManagerInterface $TransactionManager = null
+        ?TransactionManagerInterface $transactionManager = null
     )
     {
-        if (!empty($TransactionManager)) {
+        if (!empty($transactionManager)) {
             // seta a transaction no repository
-            $this->UserWalletRepository->setTransaction($TransactionManager->getTransaction());
+            $this->userWalletRepository->setTransaction($transactionManager->getTransaction());
         }
         
-        $UserWallet = new UserWallet();
-        $UserWallet->User = $User;
-        $UserWallet->balance = 0;
-        $UserWallet->UpdatedAt = new \DateTimeImmutable();
+        $userWallet = new UserWallet();
+        $userWallet->User = $User;
+        $userWallet->balance = 0;
+        $userWallet->updatedAt = new \DateTimeImmutable();
         
-        $this->UserWalletRepository->persist($UserWallet);
+        $this->userWalletRepository->persist($userWallet);
     }
 }

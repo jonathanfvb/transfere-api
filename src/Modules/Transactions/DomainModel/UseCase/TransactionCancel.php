@@ -8,34 +8,34 @@ use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 
 class TransactionCancel
 {
-    private TransactionRepositoryInterface $TransactionRepository;
+    private TransactionRepositoryInterface $transactionRepository;
     
     public function __construct(
-        TransactionRepositoryInterface $TransactionRepository
+        TransactionRepositoryInterface $transactionRepository
     )
     {
-        $this->TransactionRepository = $TransactionRepository;
+        $this->transactionRepository = $transactionRepository;
     }
     
-    public function execute(TransactionCancelRequest $Request)
+    public function execute(TransactionCancelrequest $request)
     {
         // busca a transação
-        $Transaction = $this->TransactionRepository->findByUuid($Request->transaction_uuid);
-        if (!$Transaction) {
+        $transaction = $this->transactionRepository->findByUuid($request->transactionUuid);
+        if (!$transaction) {
             throw new TransactionException('Transaction not found', 404);
         }
         
         // valida se está pendente de autorização
-        if (!$Transaction->isAuthorizationPending()) {
+        if (!$transaction->isAuthorizationPending()) {
             throw new TransactionException(
-                "Transaction can not be cancelled. Status: {$Transaction->status_authorization}.",
+                "Transaction can not be cancelled. Status: {$transaction->statusAuthorization}.",
                 400
             );
         }
         
         // cancela a transação
-        $Transaction->status_authorization = TransactionEnum::AUTHORIZATION_CANCELLED;
-        $Transaction->UpdatedAt = new \DateTimeImmutable();
-        $this->TransactionRepository->persist($Transaction);
+        $transaction->statusAuthorization = TransactionEnum::AUTHORIZATION_CANCELLED;
+        $transaction->updatedAt = new \DateTimeImmutable();
+        $this->transactionRepository->persist($transaction);
     }
 }

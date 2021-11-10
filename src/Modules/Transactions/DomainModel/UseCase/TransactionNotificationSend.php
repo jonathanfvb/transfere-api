@@ -9,29 +9,29 @@ use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 
 class TransactionNotificationSend
 {
-    private TransactionRepositoryInterface $TransactionRepository;
+    private TransactionRepositoryInterface $transactionRepository;
     
-    private NotificationServiceInterface $NotificationService;
+    private NotificationServiceInterface $notificationService;
     
     public function __construct(
-        TransactionRepositoryInterface $TransactionRepository,
-        NotificationServiceInterface $NotificationService
+        TransactionRepositoryInterface $transactionRepository,
+        NotificationServiceInterface $notificationService
     )
     {
-        $this->TransactionRepository = $TransactionRepository;
-        $this->NotificationService = $NotificationService;
+        $this->transactionRepository = $transactionRepository;
+        $this->notificationService = $notificationService;
     }
     
-    public function execute(TransactionNotificationSendRequest $Request)
+    public function execute(TransactionNotificationSendrequest $request)
     {
         // busca a transação
-        $Transaction = $this->TransactionRepository->findByUuid($Request->transaction_uuid);
-        if (!$Transaction) {
+        $transaction = $this->transactionRepository->findByUuid($request->transactionUuid);
+        if (!$transaction) {
             throw new TransactionException('Transaction not found', 404);
         }
         
         // valida se a notificação ainda não foi enviada
-        if ($Transaction->isNotificationSent()) {
+        if ($transaction->isNotificationSent()) {
             throw new TransactionException(
                 'Notification has already been sent',
                 400
@@ -39,7 +39,7 @@ class TransactionNotificationSend
         }
         
         // valida se a transação está autorizada
-        if (!$Transaction->isAuthorized()) {
+        if (!$transaction->isAuthorized()) {
             throw new TransactionException(
                 'Notification can not be send. Transaction is not authorized.',
                 400
@@ -47,14 +47,14 @@ class TransactionNotificationSend
         }
         
         // envia notificação para o beneficiário
-        $is_notified = $this->NotificationService->sendNotification($Transaction->Payee);
-        if (!$is_notified) {
+        $isNotified = $this->notificationService->sendNotification($transaction->payee);
+        if (!$isNotified) {
             throw new TransactionException('Fail to send notification', 400);
         }
         
         // altera o status da notificação para enviada
-        $Transaction->status_notification = TransactionEnum::NOTIFICATION_SENT;
-        $Transaction->UpdatedAt = new \DateTimeImmutable();
-        $this->TransactionRepository->persist($Transaction);
+        $transaction->statusNotification = TransactionEnum::NOTIFICATION_SENT;
+        $transaction->updatedAt = new \DateTimeImmutable();
+        $this->transactionRepository->persist($transaction);
     }
 }

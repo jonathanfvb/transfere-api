@@ -9,7 +9,7 @@ class PhalconUuidGenerator implements UuidGeneratorInterface
 {
     public function generateUuid(): string
     {
-        $Random = new Random();
-        return $Random->uuid();
+        $random = new Random();
+        return $random->uuid();
     }
 }

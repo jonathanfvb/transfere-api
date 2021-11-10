@@ -7,15 +7,15 @@ use Api\Modules\Users\DomaiModel\Model\User;
 
 class ExternalAuthorizationService implements AuthorizeServiceInterface
 {
-    public function authorize(User $Payer, $value): bool
+    public function authorize(User $payer, $value): bool
     {
         $url = 'https://run.mocky.io/v3/8fafdd68-a090-496f-8c9a-3442cf30dae6';
         $result = $this->sendCurl($url);
         if ($result instanceof \stdClass) {
             return $result->message == 'Autorizado';
-        } else {
-            return false;
         }
+        
+        return false;
     }
     
     private function sendCurl(string $url)

@@ -11,7 +11,7 @@ class TransactionModel extends Model
     {
         $this->setSource('transaction');
         
-        $this->hasOne('user_payer_uuid', UserModel::class, 'uuid', ['alias' => 'Payer']);
-        $this->hasOne('user_payee_uuid', UserModel::class, 'uuid', ['alias' => 'Payee']);
+        $this->hasOne('user_payer_uuid', UserModel::class, 'uuid', ['alias' => 'payer']);
+        $this->hasOne('user_payee_uuid', UserModel::class, 'uuid', ['alias' => 'payee']);
     }
 }

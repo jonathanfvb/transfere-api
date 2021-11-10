@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Modules\Users\DomainModel\DTO;
+namespace Api\Modules\Users\DomaiModel\DTO;
 
 use Api\Modules\Users\DomaiModel\Model\User;
 

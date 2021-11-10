@@ -8,23 +8,23 @@ use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 
 class TransactionGetDetail
 {
-    private TransactionRepositoryInterface $TransactionRepository;
+    private TransactionRepositoryInterface $transactionRepository;
     
     public function __construct(
-        TransactionRepositoryInterface $TransactionRepository
+        TransactionRepositoryInterface $transactionRepository
     )
     {
-        $this->TransactionRepository = $TransactionRepository;
+        $this->transactionRepository = $transactionRepository;
     }
     
-    public function execute(TransactionGetDetailRequest $Request): TransactionGetDetailDTO
+    public function execute(TransactionGetDetailrequest $request): TransactionGetDetailDTO
     {
         // busca a transação
-        $Transaction = $this->TransactionRepository->findByUuid($Request->transaction_uuid);
-        if (!$Transaction) {
+        $transaction = $this->transactionRepository->findByUuid($request->transactionUuid);
+        if (!$transaction) {
             throw new TransactionException('Transaction not found', 404);
         }
         
-        return new TransactionGetDetailDTO($Transaction);
+        return new TransactionGetDetailDTO($transaction);
     }
 }
