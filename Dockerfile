@@ -18,6 +18,8 @@ RUN composer install && composer dump-autoload
 
 # project code
 COPY . .
+# php ini
+COPY ./config/php.ini /etc/php7/
 
 # start supervisor
 CMD ["--nginx-env"]

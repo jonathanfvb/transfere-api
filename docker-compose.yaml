@@ -4,8 +4,6 @@ app:
    - "8080:80"
   volumes:
    - ./:/var/www/public
-   #- .nginx:/etc/nginx/conf.d
-  #entrypoint: ["composer install --no-dev", "composer dump-autoload --optimize --no-dev"]
   links:
    - db
 
