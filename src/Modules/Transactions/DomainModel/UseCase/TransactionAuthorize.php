@@ -12,6 +12,7 @@ use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterfa
 use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
 use Api\Modules\UserWallet\DomainModel\Repository\UserWalletRepositoryInterface;
 use DateTimeImmutable;
+use Api\Modules\UserWallet\DomainModel\Model\UserWalletEnum;
 
 class TransactionAuthorize
 {
@@ -57,13 +58,13 @@ class TransactionAuthorize
         // busca a carteira do pagador
         $payerWallet = $this->userWalletRepository->findByUserUuid($this->transaction->payer->uuid);
         if (!$payerWallet) {
-            throw new TransactionException('payer Wallet not found', 404);
+            throw new TransactionException('Payer Wallet not found', 404);
         }
         
         // busca a carteira do beneficiário
         $payeeWallet = $this->userWalletRepository->findByUserUuid($this->transaction->payee->uuid);
         if (!$payeeWallet) {
-            throw new TransactionException('payee Wallet not found', 404);
+            throw new TransactionException('Payee Wallet not found', 404);
         }
         
         // realiza a autorização em um serviço externo
@@ -81,6 +82,12 @@ class TransactionAuthorize
         // credita o valor para o beneficiário
         $payeeWallet->balance += $this->transaction->ammount;
         $payeeWallet->updatedAt = new DateTimeImmutable();
+        
+        // valida se o valor excede o valor máximo permitido na carteira
+        if ($payeeWallet->balance > UserWalletEnum::MAX_BALANCE_LIMIT) {
+            throw new TransactionException('Value exceeds the max balance limit', 400);
+        }
+        
         $this->userWalletRepository->persist($payeeWallet);
         
         // altera o status da transação para autorizada

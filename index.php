@@ -22,6 +22,8 @@ use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegisterRequest;
 use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
 use Phalcon\Di\FactoryDefault;
 use Phalcon\Mvc\Micro;
+use Api\Modules\UserWallet\DomainModel\UseCase\UserWalletAddMoney;
+use Api\Modules\UserWallet\DomainModel\UseCase\UserWalletAddMoneyRequest;
 
 $container = new FactoryDefault();
 
@@ -258,6 +260,50 @@ $app->delete('/transactions/cancel/{uuid}', function ($uuid) use ($app) {
         return $app->response;
     }
 });
+
+$app->post('/users/wallet', function () use ($app) {
+    try {
+        /** @var \DI\Container $DiContainer */
+        $DiContainer = $app->getDI()->get('container');
+        
+        $app->response->setStatusCode(200);
+        $content = [
+            'success' => true,
+            'message' => 'Money added'
+        ];
+        
+        $payload = $app->request->getJsonRawBody();
+        
+        ParametersHelper::validateMandatory(
+            $payload,
+            ['uuid', 'value']
+        );
+        
+        // caso de uso para adicionar valor à carteira do usuário
+        /** @var UserWalletAddMoney $ucUserWalletAddMoney*/
+        $ucUserWalletAddMoney = $DiContainer->get('UserWalletAddMoney');
+        
+        $ucUserWalletAddMoney->execute(
+            new UserWalletAddMoneyRequest(
+                $payload->uuid, 
+                $payload->value
+            )
+        );
+        
+        $app->response->setJsonContent($content);
+        return $app->response;
+    } catch (Exception $e) {
+        $code = $e->getCode() ? $e->getCode() : 500;
+        $app->response->setStatusCode($code);
+        $content = [
+            'success' => false,
+            'message' => $e->getMessage()
+        ];
+        $app->response->setJsonContent($content);
+        return $app->response;
+    }
+});
+
 
 $app->post('/users/common', function () use ($app) {
     try {
