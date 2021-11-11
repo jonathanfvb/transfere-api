@@ -10,20 +10,20 @@ Neste documento poderão ser encontradas informações referente à arquitetura 
     - [`Container/`](#container)
       - [`Modules/`](#container-modules)
     - [`Library/`](#library)
-      - [`Contracts/`](#contracts)
-        - [`Service/`](#contracts-service)
+      - [`Contracts/`](#library-contracts)
+        - [`Service/`](#library-contracts-service)
       - [`Persistence/`](#library-persistence)
-      - [`Service/`](#service)
-      - [`Util/`](#util)
-      - [`ValueObject/`](#valueobject)
+      - [`Service/`](#library-service)
+      - [`Util/`](#library-util)
+      - [`ValueObject/`](#library-valueobject)
     - [`Modules/`](#modules)
-      - [`DomainModel/`](#domainmodel)
-        - [`DTO/`](#dto)
-        - [`Exception/`](#exception)
-        - [`Model/`](#model)
-        - [`Repository/`](#repository)
-        - [`UseCase/`](#usecase)
-      - [`Persistence/`](#persistence)
+      - [`DomainModel/`](#modules-domainmodel)
+        - [`DTO/`](#modules-dto)
+        - [`Exception/`](#modules-exception)
+        - [`Model/`](#modules-model)
+        - [`Repository/`](#modules-repository)
+        - [`UseCase/`](#modules-usecase)
+      - [`Persistence/`](#modules-persistence)
   - [`tests/`](#tests)
   - [`vendor/`](#vendor)
         
@@ -51,25 +51,25 @@ Contém o container de cada módulo da aplicação, os quais são responsável p
 ### `Library/`
 Armazena as classes de bibliotecas da aplicação.
 
-#### `Contracts/`
+#### `Library/Contracts/`
 Interfaces utilizadas na aplicação. Possui desde interfaces mais simples, como a Arrayble responsável pela assinatura do método "toArray()", como interfaces de Serviços.
 
-##### `Contracts/Persistence/`
+##### `Library/Contracts/Persistence/`
 Interfaces relacionadas à camada de persistência.
 
-##### `Contracts/Service/`
+##### `Library/Contracts/Service/`
 Interfaces de serviços, como, por exemplo, NotificationServiceInterface, responsável pela assinatura do método "sendNotification()".
 
 #### `Library/Persistence/`
 Classes que implementam as interfaces da camada de persistência, além da classe de Exception desta camada.
 
-#### `Service/`
+#### `Library/Service/`
 Classes que implementam as interfaces de serviço.
 
-#### `Util/`
+#### `Library/Util/`
 Classes que implementam as interfaces que possuem caráter a auxiliar em tarefas rotineiras.
 
-#### `ValueObject/`
+#### `Library/ValueObject/`
 Diretório destinado a armazenar os objetos identificados como ValueObjects dentro do contexto da aplicação.
 
 ### `Modules/`
@@ -77,28 +77,28 @@ Ponto de entrada dos módulos da aplicação. A separação em módulo visa traz
 
 A partir deste ponto é criado um diretório o qual deve representar o nome do módulo em questão e a partir de então os diretórios seguirão o padrão descrito a seguir.
 
-#### `DomainModel/`
+#### `Modules/DomainModel/`
 Camada de domínio da aplicação. É nesta camada que deverão constar os códigos que possuem os elementos diretamente ligados ao negócio que a aplicação visa atender.
 
-##### `DTO/`
+##### `Modules/DTO/`
 A camada de DTO (Data Transfer Object) possui as classes responsáveis pela transferência de dados entre as camadas da aplicação.
 
-##### `Exception/`
+##### `Modules/Exception/`
 Exceptions relacionadas ao módulo.
 
-##### `Model/`
+##### `Modules/Model/`
 Destinada a conter as classes que representam os Modelos (Models) do módulo. Os modelos podem ser entendidos de maneira análoga à tabela do banco de dados, porém sua implementação não representa necessariamente a estrutura de uma tabela.
 
-##### `Repository/`
+##### `Modules/Repository/`
 Contém as interfaces dos Repositórios do módulo. Os Repositórios estão na camada mais próxima dos dados da aplicação. É nesta camada que estão os métodos "find" e "persist", por exemplo.
 
-##### `UseCase/`
+##### `Modules/UseCase/`
 Nesta camada estão as classes que representam os Casos de Uso da aplicação. Neste tipo de padrão os Casos de Uso tem suas responsabilidades muito bem definidas. A ideia é que ao ler o nome de uma classe que implementa um Caso de Uso, seja possível identificar o que ela está destinada a fazer, como por exemplo:
 
 - "TransactionStart" -> Responsável por ininiciar uma transação;
 - "TransactionAuthorize" -> Responsável por autorizar uma transação;
 
-#### `Persistence/`
+#### `Modules/Persistence/`
 Camada de Persistência da aplicação. Possui as classes que implementam as interfaces dos Repositórios. Essa camada pode conter classes que implementam a persistência através de algum framework, por exemplo.
 
 ### `tests/`
