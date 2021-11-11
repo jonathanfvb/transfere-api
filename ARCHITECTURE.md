@@ -5,6 +5,7 @@ Neste documento poderão ser encontradas informações referente à arquitetura 
 Índice
 - [Arquitetura](#arquitetura)
   - [`.data/`](#data)
+  - [`config/`](#config)
   - [`docs/`](#data)
   - [`src/`](#src)
     - [`Container/`](#container)
@@ -31,6 +32,9 @@ Neste documento poderão ser encontradas informações referente à arquitetura 
 Arquivos referente ao banco de dados da aplicação.
 Atualmente a aplicação utiliza um banco de dados MySQL.
 Maiores informações sobre a estrutura do banco de dados da aplicação podem ser encontradas [aqui](DATABASE.md).
+
+## `config/`
+Arquivos de configuração da aplicação. Atualmente possui o setup inicial do banco de dados e um arquivo com as credenciais do banco de dados.
 
 ## `docs/`
 Documentação da API desenvolvida utilizando o Swagger.

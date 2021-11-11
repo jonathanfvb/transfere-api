@@ -23,12 +23,20 @@ use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancel;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancelRequest;
 
 $container = new FactoryDefault();
-$container->set('db', function () {
+
+// Config File
+$configFile =  getcwd() . '/config/config.php';
+$config = new \Phalcon\Config\Adapter\Php($configFile);
+$container->set('config', $config);
+
+$container->set('db', function () use ($config) {
     return new PdoMysql([
-        'host'     => 'db',
-        'username' => 'root',
-        'password' => 'root',
-        'dbname'   => 'transfere'
+        'host'     => $config['database']['host'],
+        'port'     => $config['database']['port'],
+        'username' => $config['database']['username'],
+        'password' => $config['database']['password'],
+        'dbname'   => $config['database']['dbname'],
+        'charset'  => $config['database']['charset']
     ]);
 });
 
