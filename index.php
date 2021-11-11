@@ -2,25 +2,26 @@
 
 require_once "vendor/autoload.php";
 
-use Phalcon\Mvc\Micro;
-use Phalcon\Di\FactoryDefault;
-use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
-
 use Api\Container\BuilderContainer;
+use Api\Library\Util\ParametersHelper;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorize;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorizeRequest;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancel;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancelRequest;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetail;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetailRequest;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSend;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSendRequest;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionStart;
+use Api\Modules\Transactions\DomainModel\UseCase\TransactionStartRequest;
 use Api\Modules\Users\DomaiModel\UseCase\CommonUserRegister;
 use Api\Modules\Users\DomaiModel\UseCase\CommonUserRegisterRequest;
 use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegister;
 use Api\Modules\Users\DomaiModel\UseCase\SellerUserRegisterRequest;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionStart;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionStartRequest;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorize;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionAuthorizeRequest;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSend;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionNotificationSendRequest;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetail;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionGetDetailRequest;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancel;
-use Api\Modules\Transactions\DomainModel\UseCase\TransactionCancelRequest;
+
+use Phalcon\Db\Adapter\Pdo\Mysql as PdoMysql;
+use Phalcon\Di\FactoryDefault;
+use Phalcon\Mvc\Micro;
 
 $container = new FactoryDefault();
 
@@ -73,7 +74,7 @@ $app->get('/transactions/{uuid}', function ($uuid) use ($app) {
         
         $Response = $ucTransactionGetDetail->execute(
             new TransactionGetDetailRequest($uuid)
-            );
+        );
         
         $content['data'] = $Response;
         
@@ -103,6 +104,11 @@ $app->post('/transactions', function () use ($app) {
         ];
         
         $payload = $app->request->getJsonRawBody();
+        
+        ParametersHelper::validateMandatory(
+            $payload, 
+            ['value', 'payer_uuid', 'payee_uuid']
+        );
         
         // caso de uso para iniciar a transação        
         /** @var TransactionStart $ucTransactionStart*/
@@ -147,6 +153,11 @@ $app->put('/transactions/authorize', function () use ($app) {
         
         $payload = $app->request->getJsonRawBody();
         
+        ParametersHelper::validateMandatory(
+            $payload,
+            ['uuid']
+        );
+        
         // caso de uso para autorizar a transação
         /** @var TransactionAuthorize $ucTransactionAuthorize*/
         $ucTransactionAuthorize = $DiContainer->get('TransactionAuthorize');
@@ -187,6 +198,11 @@ $app->put('/transactions/send-notification', function () use ($app) {
         ];
         
         $payload = $app->request->getJsonRawBody();
+        
+        ParametersHelper::validateMandatory(
+            $payload,
+            ['uuid']
+        );
         
         // caso de uso para enviar a notificação
         /** @var TransactionNotificationSend $ucTransactionNotificationSend*/
@@ -256,6 +272,11 @@ $app->post('/users/common', function () use ($app) {
         
         $payload = $app->request->getJsonRawBody();
         
+        ParametersHelper::validateMandatory(
+            $payload,
+            ['full_name', 'cpf', 'email', 'pass']
+        );
+        
         // caso de uso para registrar usuário comum
         /** @var CommonUserRegister $ucCommonUserReg*/
         $ucCommonUserReg = $DiContainer->get('CommonUserRegister');
@@ -297,6 +318,11 @@ $app->post('/users/sellers', function () use ($app) {
         ];
         
         $payload = $app->request->getJsonRawBody();
+        
+        ParametersHelper::validateMandatory(
+            $payload,
+            ['full_name', 'cpf', 'cnpj', 'email', 'pass']
+        );
         
         // caso de uso para registrar usuário seller
         /** @var SellerUserRegister $ucSellerUserReg*/
