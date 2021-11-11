@@ -3,7 +3,7 @@
 namespace Api\Modules\Transactions\DomainModel\UseCase;
 
 use Api\Library\Contracts\Service\AuthorizeServiceInterface;
-use Api\Library\Persistence\TransactionManagerInterface;
+use Api\Library\Contracts\Persistence\TransactionManagerInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionAuthorizeDTO;
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Modules\Transactions\DomainModel\Model\Transaction;
