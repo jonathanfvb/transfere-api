@@ -11,41 +11,41 @@ class Transaction implements Arrayable
     
     public float $ammount;
     
-    public string $status_authorization;
+    public string $statusAuthorization;
     
-    public string $status_notification;
-    
-    /** @var \DateTimeImmutable */
-    public \DateTimeImmutable $CreatedAt;
+    public string $statusNotification;
     
     /** @var \DateTimeImmutable */
-    public ?\DateTimeImmutable $UpdatedAt = null;
+    public \DateTimeImmutable $createdAt;
+    
+    /** @var \DateTimeImmutable */
+    public ?\DateTimeImmutable $updatedAt = null;
     
     /** @var User */
-    public User $Payer;
+    public User $payer;
     
     /** @var User */
-    public User $Payee;
+    public User $payee;
     
     
     public function isAuthorizationPending(): bool
     {
-        return $this->status_authorization == TransactionEnum::AUTHORIZATION_PENDING;
+        return $this->statusAuthorization == TransactionEnum::AUTHORIZATION_PENDING;
     }
     
     public function isAuthorized(): bool
     {
-        return $this->status_authorization == TransactionEnum::AUTHORIZATION_SUCCESS;
+        return $this->statusAuthorization == TransactionEnum::AUTHORIZATION_SUCCESS;
     }
     
     public function isNotificationPending(): bool
     {
-        return $this->status_notification == TransactionEnum::NOTIFICATION_PENDING;
+        return $this->statusNotification == TransactionEnum::NOTIFICATION_PENDING;
     }
     
     public function isNotificationSent(): bool
     {
-        return $this->status_notification == TransactionEnum::NOTIFICATION_SENT;
+        return $this->statusNotification == TransactionEnum::NOTIFICATION_SENT;
     }
     
     public function toArray(): array
@@ -53,12 +53,12 @@ class Transaction implements Arrayable
         return [
             'uuid' => $this->uuid,
             'ammount' => $this->ammount,
-            'status_authorization' => $this->status_authorization,
-            'status_notification' => $this->status_notification,
-            'created_at' => $this->CreatedAt->format('Y-m-d H:i:s'),
-            'updated_at' => $this->UpdatedAt ? $this->UpdatedAt->format('Y-m-d H:i:s') : null,
-            'user_payer_uuid' => $this->Payer->uuid,
-            'user_payee_uuid' => $this->Payee->uuid
+            'status_authorization' => $this->statusAuthorization,
+            'status_notification' => $this->statusNotification,
+            'created_at' => $this->createdAt->format('Y-m-d H:i:s'),
+            'updated_at' => $this->updatedAt ? $this->updatedAt->format('Y-m-d H:i:s') : null,
+            'user_payer_uuid' => $this->payer->uuid,
+            'user_payee_uuid' => $this->payee->uuid
         ];
     }
 }

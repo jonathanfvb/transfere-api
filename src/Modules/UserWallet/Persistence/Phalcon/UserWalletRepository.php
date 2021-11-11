@@ -7,6 +7,9 @@ use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
 use Api\Modules\UserWallet\DomainModel\Repository\UserWalletRepositoryInterface;
 use Api\Modules\Users\Persistence\Phalcon\UserRepository;
 
+use \DateTimeImmutable;
+use \InvalidArgumentException;
+
 class UserWalletRepository extends PhalconAbstractRepository implements UserWalletRepositoryInterface
 {
     public function __construct()
@@ -14,41 +17,43 @@ class UserWalletRepository extends PhalconAbstractRepository implements UserWall
         $this->entity = new UserWalletModel();
     }
     
-    public function persist($UserWallet): void
+    public function persist($userWallet): void
     {
-        parent::persist($UserWallet);
+        parent::persist($userWallet);
     }
     
-    public function findByUserUuid(string $user_uuid): ?UserWallet
+    public function findByUserUuid(string $userUuid): ?UserWallet
     {
         $result = $this->entity->findFirst([
             'conditions' => 'user_uuid = :user_uuid:',
-            'bind' => ['user_uuid' => $user_uuid]
+            'bind' => ['user_uuid' => $userUuid]
         ]);
         
-        if (!$result) {
-            return null;
-        } else {
+        if ($result) {
             return $this->parsePhalconModelToDomainModel($result);
         }
+        
+        return null;
     }
 
     public static function parsePhalconModelToDomainModel($result): UserWallet
     {
-        $UserWallet = new UserWallet();
-        $UserWallet->User = UserRepository::parsePhalconModelToDomainModel($result->User);
-        $UserWallet->balance = $result->balance;
+        $userRepository = new UserRepository();
         
-        $UpdatedAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->updated_at);
-        if (!$UpdatedAt) {
-            throw new \InvalidArgumentException(
-                "The field updated_at isn't in the format 'Y-m-d H:i:s'", 
+        $userWallet = new UserWallet();
+        $userWallet->User = $userRepository->parsePhalconModelToDomainModel($result->User);
+        $userWallet->balance = $result->balance;
+        
+        try {
+            $updatedAt = new DateTimeImmutable($result->updated_at);
+            $userWallet->updatedAt = $updatedAt;
+        } catch (\Exception $e) {
+            throw new InvalidArgumentException(
+                "The field updated_at isn't in the format 'Y-m-d H:i:s'",
                 400
             );
         }
-        $UserWallet->UpdatedAt = $UpdatedAt;
         
-        return $UserWallet;
+        return $userWallet;
     }   
 }
-

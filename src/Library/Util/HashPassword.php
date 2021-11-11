@@ -10,17 +10,17 @@ class HashPassword implements HashPasswordInterface
     
     private int $cost = 10; 
 
-    public function generateHashedPassword($plain_password)
+    public function generateHashedPassword($plainPassword)
     {
         return password_hash(
-            $plain_password, 
+            $plainPassword, 
             $this->alg, 
             ['cost' => $this->cost]
         );
     }
 
-    public function verifyPassword($plain_password, $hashed_password)
+    public function verifyPassword($plainPassword, $hashedPassword)
     {
-        return password_verify($plain_password, $hashed_password);
+        return password_verify($plainPassword, $hashedPassword);
     }
 }

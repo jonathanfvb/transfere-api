@@ -10,15 +10,15 @@ class User implements Arrayable
 {
     public string $uuid;
     
-    public string $full_name;
+    public string $fullName;
     
     public string $type;
     
     /** @var Cpf */
-    public Cpf $Cpf;
+    public Cpf $cpf;
     
     /** @var Cnpj */
-    public ?Cnpj $Cnpj = null;
+    public ?Cnpj $cnpj = null;
     
     public string $email;
     
@@ -27,17 +27,22 @@ class User implements Arrayable
     
     public function getType(): string
     {
-        return empty($this->Cnpj) ? UserEnum::TYPE_COMMON : UserEnum::TYPE_SELLER;
+        return empty($this->cnpj) ? UserEnum::TYPE_COMMON : UserEnum::TYPE_SELLER;
+    }
+    
+    public function isSeller(): string
+    {
+        return $this->getType() == UserEnum::TYPE_SELLER;
     }
     
     public function toArray(): array
     {
         return [
             'uuid' => $this->uuid,
-            'full_name' => $this->full_name,
+            'full_name' => $this->fullName,
             'type' => $this->getType(),
-            'cpf' => $this->Cpf->getCpfUnmasked(),
-            'cnpj' => $this->Cnpj ? $this->Cnpj->getCnpjUnmasked() : null,
+            'cpf' => $this->cpf->getCpfUnmasked(),
+            'cnpj' => $this->cnpj ? $this->cnpj->getCnpjUnmasked() : null,
             'email' => $this->email,
             'pass' => $this->pass
         ];

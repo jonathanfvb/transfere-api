@@ -21,25 +21,25 @@ class BuilderContainer extends Container
     
     private function initializeModuleUsers()
     {
-        $Container = new UsersContainer($this);
-        $Container->initialize();
+        $container = new UsersContainer($this);
+        $container->initialize();
     }
     
     private function initializeModuleUserWallet()
     {
-        $Container = new UserWalletContainer($this);
-        $Container->initialize();
+        $container = new UserWalletContainer($this);
+        $container->initialize();
     }
     
     private function initializeModuleTransactions()
     {
-        $Container = new TransactionsContainer($this);
-        $Container->initialize();
+        $container = new TransactionsContainer($this);
+        $container->initialize();
     }
     
     private function initializeLibraries()
     {
-        $Container = new LibraryContainer($this);
-        $Container->initialize();
+        $container = new LibraryContainer($this);
+        $container->initialize();
     }
 }

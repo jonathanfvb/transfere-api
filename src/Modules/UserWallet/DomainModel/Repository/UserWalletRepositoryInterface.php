@@ -6,7 +6,7 @@ use Api\Modules\UserWallet\DomainModel\Model\UserWallet;
 
 interface UserWalletRepositoryInterface
 {
-    public function persist($UserWallet): void;
+    public function persist($userWallet): void;
     
-    public function findByUserUuid(string $user_uuid): ?UserWallet;
+    public function findByUserUuid(string $userUuid): ?UserWallet;
 }

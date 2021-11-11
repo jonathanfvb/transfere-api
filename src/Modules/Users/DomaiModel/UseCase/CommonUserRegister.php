@@ -10,75 +10,75 @@ use Api\Library\Contracts\HashPasswordInterface;
 use Api\Library\ValueObject\Cpf;
 use Api\Modules\UserWallet\DomainModel\UseCase\UserWalletCreate;
 use Api\Library\Persistence\TransactionManagerInterface;
-use Api\Modules\Users\DomainModel\DTO\CommonUserRegisterDTO;
+use Api\Modules\Users\DomaiModel\DTO\CommonUserRegisterDTO;
 
 class CommonUserRegister
 {
-    private UserRepositoryInterface $UserRepository;
+    private UserRepositoryInterface $userRepository;
     
-    private UuidGeneratorInterface $UuidGenerator;
+    private UuidGeneratorInterface $uuidGenerator;
     
-    private HashPasswordInterface $HashPassword;
+    private HashPasswordInterface $hashPassword;
     
-    private UserWalletCreate $UserWalletCreate;
+    private UserWalletCreate $userWalletCreate;
     
-    private TransactionManagerInterface $TransactionManager;
+    private TransactionManagerInterface $transactionManager;
     
     public function __construct(
-        UserRepositoryInterface $UserRepository,
-        UuidGeneratorInterface $UuidGenerator,
-        HashPasswordInterface $HashPassword,
-        UserWalletCreate $UserWalletCreate,
-        TransactionManagerInterface $TransactionManager
+        UserRepositoryInterface $userRepository,
+        UuidGeneratorInterface $uuidGenerator,
+        HashPasswordInterface $hashPassword,
+        UserWalletCreate $userWalletCreate,
+        TransactionManagerInterface $transactionManager
     )
     {
-        $this->UserRepository = $UserRepository;
-        $this->UuidGenerator = $UuidGenerator;
-        $this->HashPassword = $HashPassword;
-        $this->UserWalletCreate = $UserWalletCreate;
-        $this->TransactionManager = $TransactionManager;
+        $this->userRepository = $userRepository;
+        $this->uuidGenerator = $uuidGenerator;
+        $this->hashPassword = $hashPassword;
+        $this->userWalletCreate = $userWalletCreate;
+        $this->transactionManager = $transactionManager;
     }
     
-    public function execute(CommonUserRegisterRequest $Request): CommonUserRegisterDTO
+    public function execute(CommonUserRegisterrequest $request): CommonUserRegisterDTO
     {
-        $Cpf = new Cpf($Request->cpf);
-        if ($this->UserRepository->findByCpfAndCnpjNull($Cpf)) {
+        $cpf = new Cpf($request->cpf);
+        if ($this->userRepository->findByCpfAndCnpjNull($cpf)) {
             throw new UserException('Already exists a user with this cpf', 400);
         }
         
-        if ($this->UserRepository->findByEmail($Request->email)) {
+        if ($this->userRepository->findByEmail($request->email)) {
             throw new UserException('Already exists a user with this email', 400);
         }
         
         try {
             // instancia a transaction com o bd
-            $dbTransaction = $this->TransactionManager->getTransaction();
+            $dbTransaction = $this->transactionManager->getTransaction();
             
             // seta a transaction no repository
-            $this->UserRepository->setTransaction($dbTransaction);
+            $this->userRepository->setTransaction($dbTransaction);
             
             // inicia a transaction
             $dbTransaction->begin();
                         
             // cria o usuário do tipo common
-            $User = new User();
-            $User->uuid = $this->UuidGenerator->generateUuid();
-            $User->full_name = $Request->full_name;
-            $User->Cpf = $Cpf;
-            $User->email = $Request->email;
+            $user = new User();
+            $user->uuid = $this->uuidGenerator->generateUuid();
+            $user->fullName = $request->fullName;
+            $user->cpf = $cpf;
+            $user->email = $request->email;
             // Gera o hash do password
-            $User->pass = $this->HashPassword->generateHashedPassword($Request->pass);
+            $user->pass = $this->hashPassword->generateHashedPassword($request->pass);
             
             // persiste o usuário
-            $this->UserRepository->persist($User);
+            $this->userRepository->persist($user);
             
             // cria a carteira do usuário
-            $this->UserWalletCreate->execute($User, $this->TransactionManager);
+            $this->userWalletCreate->execute($user, $this->transactionManager);
             
             // realiza o commit da transaction
             $dbTransaction->commit();
             
-            return new CommonUserRegisterDTO($User);
+            return new CommonUserRegisterDTO($user);
         } catch (\Exception $e) {
             throw $e;
         }

@@ -8,13 +8,13 @@ use Api\Library\ValueObject\Cnpj;
 
 interface UserRepositoryInterface
 {
-    public function persist($User): User;
+    public function persist($user): User;
     
     public function findByUuid(string $uuid): ?User;
     
-    public function findByCpfAndCnpjNull(Cpf $Cpf): ?User;
+    public function findByCpfAndCnpjNull(Cpf $cpf): ?User;
     
-    public function findByCnpj(Cnpj $Cnpj): ?User;
+    public function findByCnpj(Cnpj $cnpj): ?User;
     
     public function findByEmail(string $cnpj): ?User;
 }
