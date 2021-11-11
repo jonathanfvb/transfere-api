@@ -1,11 +1,11 @@
 # Transfere API
 Api para realizar a transferência de valor entre usuários
 
-## 💻 Pré-requisitos
+## Pré-requisitos
 * Docker
 * Docker Compose
 
-## 🚀 Instalando
+## Instalando
 Para instalar siga os passos abaixo:
 
 ### Rodando o container
