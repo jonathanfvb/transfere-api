@@ -22,7 +22,6 @@ docker-compose build && docker-compose up
 ## Rodando Testes Unitários
 Para executar os testes unitários execute o comando abaixo:
 
-### Rodando o container
 ```
 ./run-tests.sh
 ```
