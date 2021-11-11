@@ -2,7 +2,7 @@
 
 namespace Api\Library\Persistence\Phalcon;
 
-use Api\Library\Persistence\TransactionManagerInterface;
+use Api\Library\Contracts\Persistence\TransactionManagerInterface;
 use Phalcon\Mvc\Model\Transaction\Manager;
 
 class PhalconTransactionManager implements TransactionManagerInterface

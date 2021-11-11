@@ -3,7 +3,7 @@
 namespace Api\Modules\Transactions\DomainModel\UseCase;
 
 use Api\Library\Contracts\UuidGeneratorInterface;
-use Api\Library\Persistence\TransactionManagerInterface;
+use Api\Library\Contracts\Persistence\TransactionManagerInterface;
 use Api\Modules\Transactions\DomainModel\DTO\TransactionStartDTO;
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Modules\Transactions\DomainModel\Model\Transaction;

@@ -2,12 +2,12 @@
 
 namespace Api\Modules\Transactions\DomainModel\UseCase;
 
-use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterface;
+use Api\Library\Contracts\Persistence\TransactionManagerInterface;
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
-use \DateTimeImmutable;
+use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterface;
 use Api\Modules\Transactions\DomainModel\Repository\UserTransactionRepositoryInterface;
-use Api\Library\Persistence\TransactionManagerInterface;
+use DateTimeImmutable;
 
 class TransactionCancel
 {
