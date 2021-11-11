@@ -13,6 +13,11 @@ Para instalar siga os passos abaixo:
 docker-compose build && docker-compose up
 ```
 
+### Criando o schema do banco de dados
+```
+docker exec transfere-api_app_1 php config/db_setup.php
+```
+
 ## Acessando a aplicação
 [http://localhost:8080](http://localhost:8080)
 
