@@ -81,7 +81,9 @@ class TransactionStart
     
     private function validate(TransactionStartrequest $request)
     {
-        if ($request->value < 0.01 || $request->value > 999999999999.99) {
+        if ($request->value < TransactionEnum::TRANSACTION_MIN_VALUE 
+            || $request->value > TransactionEnum::TRANSACTION_MAX_VALUE
+        ) {
             throw new TransactionException('Value not allowed', 400);
         }
         

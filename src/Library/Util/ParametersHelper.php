@@ -2,6 +2,8 @@
 
 namespace Api\Library\Util;
 
+use \Exception;
+
 class ParametersHelper
 {
     /**
@@ -29,7 +31,7 @@ class ParametersHelper
         }
         
         if (count($erros)) {
-            throw new \Exception(implode('. ', $erros), 400);
+            throw new Exception(implode('. ', $erros), 400);
         }
     }
 }
