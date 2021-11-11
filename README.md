@@ -14,6 +14,8 @@ docker-compose build && docker-compose up
 ```
 
 ### Criando o schema do banco de dados
+*Executar apenas uma vez*
+
 ```
 docker exec transfere-api_app_1 php config/db_setup.php
 ```
