@@ -7,15 +7,15 @@ use Api\Modules\Users\DomaiModel\Model\User;
 
 class ExternalNotificationService implements NotificationServiceInterface
 {
-    public function sendNotification(User $Receiver): bool
+    public function sendNotification(User $receiver): bool
     {
         $url = 'http://o4d9z.mocklab.io/notify';
         $result = $this->sendCurl($url);
         if ($result instanceof \stdClass) {
             return $result->message == 'Success';
-        } else {
-            return false;
         }
+        
+        return false;
     }
     
     private function sendCurl(string $url)

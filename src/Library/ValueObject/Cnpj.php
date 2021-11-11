@@ -2,24 +2,26 @@
 
 namespace Api\Library\ValueObject;
 
+use \InvalidArgumentException;
+
 class Cnpj
 {
-    private string $clean_cnpj;
+    private string $cleanCnpj;
     
     public function __construct(string $cnpj)
     {        
-        $this->clean_cnpj = $this->cleanCnpj($cnpj);
-        $this->validateCnpj($this->clean_cnpj);
+        $this->cleanCnpj = $this->cleanCnpj($cnpj);
+        $this->validateCnpj($this->cleanCnpj);
     }
     
     public function getCnpjUnmasked(): string
     {
-        return $this->clean_cnpj;
+        return $this->cleanCnpj;
     }
     
     public function getCnpjMasked(): string
     {
-        return $this->maskCnpj($this->clean_cnpj);
+        return $this->maskCnpj($this->cleanCnpj);
     }
     
     private function cleanCnpj(string $cnpj)
@@ -27,20 +29,20 @@ class Cnpj
         return preg_replace( '/[^0-9]/', '', $cnpj);
     }
     
-    private function validateCnpj(string $clean_cnpj)
+    private function validateCnpj(string $cleanCnpj)
     {
         // TODO - Incluir algoritmo para validar o CNPJ
-        if (strlen($clean_cnpj) != 14) {
-            throw new \InvalidArgumentException('Invalid CNPJ', 400);
+        if (strlen($cleanCnpj) != 14) {
+            throw new InvalidArgumentException('Invalid CNPJ', 400);
         }
     }
     
-    private function maskCnpj(string $clean_cnpj)
+    private function maskCnpj(string $cleanCnpj)
     {
-        return substr($clean_cnpj, 0, 2)
-            .'.'.substr($clean_cnpj, 2, 3)
-            .'.'.substr($clean_cnpj, 5, 3)
-            .'/'.substr($clean_cnpj, 8, 4)
-            .'-'.substr($clean_cnpj, 12);
+        return substr($cleanCnpj, 0, 2)
+            .'.'.substr($cleanCnpj, 2, 3)
+            .'.'.substr($cleanCnpj, 5, 3)
+            .'/'.substr($cleanCnpj, 8, 4)
+            .'-'.substr($cleanCnpj, 12);
     }
 }

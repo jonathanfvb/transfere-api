@@ -7,6 +7,9 @@ use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterfa
 use Api\Modules\Transactions\DomainModel\Model\Transaction;
 use Api\Modules\Users\Persistence\Phalcon\UserRepository;
 
+use \DateTimeImmutable;
+use \InvalidArgumentException;
+
 class TransactionRepository extends PhalconAbstractRepository implements TransactionRepositoryInterface
 {
     public function __construct()
@@ -14,9 +17,9 @@ class TransactionRepository extends PhalconAbstractRepository implements Transac
         $this->entity = new TransactionModel();
     }
     
-    public function persist($Transaction): void
+    public function persist($transaction): void
     {
-        parent::persist($Transaction);
+        parent::persist($transaction);
     }
     
     public function findByUuid(string $uuid): ?Transaction
@@ -26,44 +29,46 @@ class TransactionRepository extends PhalconAbstractRepository implements Transac
             'bind' => ['uuid' => $uuid]
         ]);
         
-        if (!$result) {
-            return null;
-        } else {
+        if ($result) {
             return $this->parsePhalconModelToDomainModel($result);
         }
+        
+        return null;
     }
     
     public static function parsePhalconModelToDomainModel($result): Transaction
     {
-        $Transaction = new Transaction();
-        $Transaction->uuid = $result->uuid;
-        $Transaction->ammount = $result->ammount;
-        $Transaction->status_authorization = $result->status_authorization;
-        $Transaction->status_notification = $result->status_notification;
+        $transaction = new Transaction();
+        $transaction->uuid = $result->uuid;
+        $transaction->ammount = $result->ammount;
+        $transaction->statusAuthorization = $result->status_authorization;
+        $transaction->statusNotification = $result->status_notification;
         
-        $CreatedAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->created_at);
-        if (!$CreatedAt) {
-            throw new \InvalidArgumentException(
+        try {
+            $createdAt = new DateTimeImmutable($result->created_at);
+            $transaction->createdAt = $createdAt;
+        } catch (\Exception $e) {
+            throw new InvalidArgumentException(
                 "The field created_at isn't in the format 'Y-m-d H:i:s'",
+                400
+            );            
+        }
+        
+        try {
+            $updatedAt = new DateTimeImmutable($result->updated_at);
+            $transaction->updatedAt = $updatedAt;
+        } catch (\Exception $e) {
+            throw new InvalidArgumentException(
+                "The field updated_at isn't in the format 'Y-m-d H:i:s'",
                 400
             );
         }
-        $Transaction->CreatedAt = $CreatedAt;
+
+        $userRepository = new UserRepository();
         
-        if ($result->updated_at) {
-            $UpdatedAt = \DateTimeImmutable::createFromFormat('Y-m-d H:i:s', $result->updated_at);
-            if (!$UpdatedAt) {
-                throw new \InvalidArgumentException(
-                    "The field updated_at isn't in the format 'Y-m-d H:i:s'",
-                    400
-                );
-            }
-            $Transaction->UpdatedAt = $UpdatedAt;
-        }
+        $transaction->payer = $userRepository->parsePhalconModelToDomainModel($result->Payer);
+        $transaction->payee = $userRepository->parsePhalconModelToDomainModel($result->Payee);
         
-        $Transaction->Payer = UserRepository::parsePhalconModelToDomainModel($result->Payer);
-        $Transaction->Payee = UserRepository::parsePhalconModelToDomainModel($result->Payee);
-        
-        return $Transaction;
+        return $transaction;
     }
 }

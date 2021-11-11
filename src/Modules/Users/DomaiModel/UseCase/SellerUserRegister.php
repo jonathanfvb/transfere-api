@@ -15,72 +15,72 @@ use Api\Modules\Users\DomaiModel\DTO\SellerUserRegisterDTO;
 
 class SellerUserRegister
 {
-    private UserRepositoryInterface $UserRepository;
+    private UserRepositoryInterface $userRepository;
     
-    private UuidGeneratorInterface $UuidGenerator;
+    private UuidGeneratorInterface $uuidGenerator;
     
-    private HashPasswordInterface $HashPassword;
+    private HashPasswordInterface $hashPassword;
     
-    private UserWalletCreate $UserWalletCreate;
+    private UserWalletCreate $userWalletCreate;
     
-    private TransactionManagerInterface $TransactionManager;
+    private TransactionManagerInterface $transactionManager;
     
     public function __construct(
-        UserRepositoryInterface $UserRepository,
-        UuidGeneratorInterface $UuidGenerator,
-        HashPasswordInterface $HashPassword,
-        UserWalletCreate $UserWalletCreate,
-        TransactionManagerInterface $TransactionManager
+        UserRepositoryInterface $userRepository,
+        UuidGeneratorInterface $uuidGenerator,
+        HashPasswordInterface $hashPassword,
+        UserWalletCreate $userWalletCreate,
+        TransactionManagerInterface $transactionManager
     )
     {
-        $this->UserRepository = $UserRepository;
-        $this->UuidGenerator = $UuidGenerator;
-        $this->HashPassword = $HashPassword;
-        $this->UserWalletCreate = $UserWalletCreate;
-        $this->TransactionManager = $TransactionManager;
+        $this->userRepository = $userRepository;
+        $this->uuidGenerator = $uuidGenerator;
+        $this->hashPassword = $hashPassword;
+        $this->userWalletCreate = $userWalletCreate;
+        $this->transactionManager = $transactionManager;
     }
     
-    public function execute(SellerUserRegisterRequest $Request): SellerUserRegisterDTO
+    public function execute(SellerUserRegisterrequest $request): SellerUserRegisterDTO
     {
-        $Cnpj = new Cnpj($Request->cnpj);
-        if ($this->UserRepository->findByCnpj($Cnpj)) {
+        $cnpj = new Cnpj($request->cnpj);
+        if ($this->userRepository->findByCnpj($cnpj)) {
             throw new UserException('Already exists a user with this cnpj', 400);
         }
         
-        if ($this->UserRepository->findByEmail($Request->email)) {
+        if ($this->userRepository->findByEmail($request->email)) {
             throw new UserException('Already exists a user with this email', 400);
         }
         
         try {
             // instancia a transaction com o bd
-            $dbTransaction = $this->TransactionManager->getTransaction();
+            $dbTransaction = $this->transactionManager->getTransaction();
             
             // seta a transaction no repository
-            $this->UserRepository->setTransaction($dbTransaction);
+            $this->userRepository->setTransaction($dbTransaction);
             
             // inicia a transaction
             $dbTransaction->begin();
             
             // cria o usuário do tipo seller
-            $User = new User();
-            $User->uuid = $this->UuidGenerator->generateUuid();
-            $User->full_name = $Request->full_name;
-            $User->Cpf = new Cpf($Request->cpf);
-            $User->Cnpj = $Cnpj;
-            $User->email = $Request->email;
+            $user = new User();
+            $user->uuid = $this->uuidGenerator->generateUuid();
+            $user->fullName = $request->fullName;
+            $user->cpf = new Cpf($request->cpf);
+            $user->cnpj = $cnpj;
+            $user->email = $request->email;
             // Gera o hash do password
-            $User->pass = $this->HashPassword->generateHashedPassword($Request->pass);
+            $user->pass = $this->hashPassword->generateHashedPassword($request->pass);
             
             // persiste o usuário
-            $this->UserRepository->persist($User);
+            $this->userRepository->persist($user);
             
             // cria a carteira do usuário
-            $this->UserWalletCreate->execute($User, $this->TransactionManager);
+            $this->userWalletCreate->execute($user, $this->transactionManager);
             
             // realiza o commit da transaction
             $dbTransaction->commit();
             
-            return new SellerUserRegisterDTO($User);
+            return new SellerUserRegisterDTO($user);
         } catch (\Exception $e) {
             throw $e;
         }

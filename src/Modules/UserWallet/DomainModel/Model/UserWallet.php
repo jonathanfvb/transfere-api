@@ -13,7 +13,7 @@ class UserWallet implements Arrayable
     public float $balance;
     
     /** @var \DateTimeImmutable */
-    public \DateTimeImmutable $UpdatedAt;
+    public \DateTimeImmutable $updatedAt;
     
     
     public function toArray(): array
@@ -21,7 +21,7 @@ class UserWallet implements Arrayable
         return [
             'user_uuid' => $this->User->uuid,
             'balance' => $this->balance,
-            'updated_at' => $this->UpdatedAt->format('Y-m-d H:i:s')
+            'updated_at' => $this->updatedAt->format('Y-m-d H:i:s')
         ];
     }
 }

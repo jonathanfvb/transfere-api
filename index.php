@@ -109,7 +109,7 @@ $app->post('/transactions', function () use ($app) {
         );
         
         $content['data'] = [
-            'uuid' => $Response->transaction_uuid
+            'uuid' => $Response->transactionUuid
         ];
         
         $app->response->setJsonContent($content);
@@ -148,9 +148,9 @@ $app->put('/transactions/authorize', function () use ($app) {
         );
         
         $content['data'] = [
-            'uuid' => $Response->transaction_uuid,
-            'status_authorization' => $Response->status_authorization,
-            'status_notification' => $Response->status_notification
+            'uuid' => $Response->transactionUuid,
+            'status_authorization' => $Response->statusAuthorization,
+            'status_notification' => $Response->statusNotification
         ];
         
         $app->response->setJsonContent($content);

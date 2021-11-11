@@ -6,18 +6,18 @@ class TransactionStartRequest
 {
     public float $value;
     
-    public string $user_payer_uuid;
+    public string $userPayerUuid;
     
-    public string $user_payee_uuid;
+    public string $userPayeeUuid;
     
     public function __construct(
         float $value,
-        string $user_payer_uuid,
-        string $user_payee_uuid
+        string $userPayerUuid,
+        string $userPayeeUuid
     )
     {
         $this->value = $value;
-        $this->user_payer_uuid = $user_payer_uuid;
-        $this->user_payee_uuid = $user_payee_uuid;
+        $this->userPayerUuid = $userPayerUuid;
+        $this->userPayeeUuid = $userPayeeUuid;
     }
 }

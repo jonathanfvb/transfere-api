@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Modules\Users\DomainModel\DTO;
+namespace Api\Modules\Users\DomaiModel\DTO;
 
 use Api\Modules\Users\DomaiModel\Model\User;
 
@@ -8,8 +8,8 @@ class CommonUserRegisterDTO
 {
     public string $uuid;
     
-    public function __construct(User $User)
+    public function __construct(User $user)
     {
-        $this->uuid = $User->uuid;
+        $this->uuid = $user->uuid;
     }
 }

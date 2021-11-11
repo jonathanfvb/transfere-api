@@ -302,27 +302,27 @@
 										"type": "float",
 										"example": 1
 									},
-									"status_authorization": {
+									"statusAuthorization": {
 										"type": "string",
 										"example": "authorized"
 									},
-									"status_notification": {
+									"statusNotification": {
 										"type": "string",
 										"example": "sent"
 									},
-									"payer_uuid": {
+									"payerUuid": {
 										"type": "string",
 										"example": "518fc61d-5da4-4a2e-8d2f-75f91bcb9144"
 									},
-									"payee_uuid": {
+									"payeeUuid": {
 										"type": "string",
 										"example": "674e243f-cc34-4415-88a2-599a962f940b"
 									},
-									"created_at": {
+									"createdAt": {
 										"type": "string",
 										"example": "2021-11-09 19:52:37"
 									},
-									"updated_at": {
+									"updatedAt": {
 										"type": "string",
 										"example": "2021-11-09 19:53:38"
 									}
@@ -371,7 +371,7 @@
 						"examples": {
 							"application/json": {
 								"success": true,
-							    "message": "Transaction notification sent"
+							    "message": "Transaction cancelled"
 							}
 						}
 					},

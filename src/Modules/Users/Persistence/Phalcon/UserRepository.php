@@ -16,10 +16,10 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
         $this->entity = new UserModel();
     }
     
-    public function persist($User): User
+    public function persist($user): User
     {
         return $this->parsePhalconModelToDomainModel(
-            parent::persist($User)
+            parent::persist($user)
         );
     }
     
@@ -30,39 +30,39 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
             'bind' => ['uuid' => $uuid]
         ]);
         
-        if (!$result) {
-            return null;
-        } else {
+        if ($result) {
             return $this->parsePhalconModelToDomainModel($result);
         }
+        
+        return null;
     }
     
-    public function findByCpfAndCnpjNull(Cpf $Cpf): ?User
+    public function findByCpfAndCnpjNull(Cpf $cpf): ?User
     {
         $result = $this->entity->findFirst([
             'conditions' => 'cpf = :cpf: AND cnpj IS NULL',
-            'bind' => ['cpf' => $Cpf->getCpfUnmasked()]
+            'bind' => ['cpf' => $cpf->getCpfUnmasked()]
         ]);
         
-        if (!$result) {
-            return null;
-        } else {
+        if ($result) {
             return $this->parsePhalconModelToDomainModel($result);
         }
+        
+        return null;
     }
     
-    public function findByCnpj(Cnpj $Cnpj): ?User
+    public function findByCnpj(Cnpj $cnpj): ?User
     {
         $result = $this->entity->findFirst([
             'conditions' => 'cnpj = :cnpj:',
-            'bind' => ['cnpj' => $Cnpj->getCnpjUnmasked()]
+            'bind' => ['cnpj' => $cnpj->getCnpjUnmasked()]
         ]);
         
-        if (!$result) {
-            return null;
-        } else {
+        if ($result) {
             return $this->parsePhalconModelToDomainModel($result);
         }
+        
+        return null;
     }
     
     public function findByEmail(string $email): ?User
@@ -72,28 +72,28 @@ class UserRepository extends PhalconAbstractRepository implements UserRepository
             'bind' => ['email' => $email]
         ]);
         
-        if (!$result) {
-            return null;
-        } else {
+        if ($result) {
             return $this->parsePhalconModelToDomainModel($result);
         }
+        
+        return null;
     }
     
     public static function parsePhalconModelToDomainModel($result): User
     {
-        $User = new User();
-        $User->uuid = $result->uuid;
-        $User->full_name = $result->full_name;
-        $User->type = (
+        $user = new User();
+        $user->uuid = $result->uuid;
+        $user->fullName = $result->full_name;
+        $user->type = (
             empty($result->cnpj) 
             ? UserEnum::TYPE_COMMON 
             : UserEnum::TYPE_SELLER
         );
-        $User->Cpf = new Cpf($result->cpf);
-        $User->Cnpj = $result->cnpj ? new Cnpj($result->cnpj) : null;
-        $User->email = $result->email;
-        $User->pass = $result->pass;
+        $user->cpf = new Cpf($result->cpf);
+        $user->cnpj = $result->cnpj ? new Cnpj($result->cnpj) : null;
+        $user->email = $result->email;
+        $user->pass = $result->pass;
         
-        return $User;
+        return $user;
     }
 }

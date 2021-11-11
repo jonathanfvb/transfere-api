@@ -6,5 +6,5 @@ use Api\Modules\Users\DomaiModel\Model\User;
 
 interface AuthorizeServiceInterface
 {
-    public function authorize(User $Payer, float $value): bool;    
+    public function authorize(User $payer, float $value): bool;    
 }

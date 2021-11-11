@@ -4,10 +4,10 @@ namespace Api\Modules\Transactions\DomainModel\UseCase;
 
 class TransactionCancelRequest
 {
-    public string $transaction_uuid;
+    public string $transactionUuid;
     
-    public function __construct(string $transaction_uuid)
+    public function __construct(string $transactionUuid)
     {
-        $this->transaction_uuid = $transaction_uuid;
+        $this->transactionUuid = $transactionUuid;
     }
 }

@@ -6,5 +6,5 @@ use Api\Modules\Users\DomaiModel\Model\User;
 
 interface NotificationServiceInterface
 {
-    public function sendNotification(User $Receiver): bool;
+    public function sendNotification(User $receiver): bool;
 }
