@@ -63,9 +63,11 @@ class TransactionRepository extends PhalconAbstractRepository implements Transac
                 400
             );
         }
+
+        $userRepository = new UserRepository();
         
-        $transaction->payer = UserRepository::parsePhalconModelToDomainModel($result->Payer);
-        $transaction->payee = UserRepository::parsePhalconModelToDomainModel($result->Payee);
+        $transaction->payer = $userRepository->parsePhalconModelToDomainModel($result->Payer);
+        $transaction->payee = $userRepository->parsePhalconModelToDomainModel($result->Payee);
         
         return $transaction;
     }

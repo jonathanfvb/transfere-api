@@ -38,8 +38,10 @@ class UserWalletRepository extends PhalconAbstractRepository implements UserWall
 
     public static function parsePhalconModelToDomainModel($result): UserWallet
     {
+        $userRepository = new UserRepository();
+        
         $userWallet = new UserWallet();
-        $userWallet->User = UserRepository::parsePhalconModelToDomainModel($result->User);
+        $userWallet->User = $userRepository->parsePhalconModelToDomainModel($result->User);
         $userWallet->balance = $result->balance;
         
         try {

@@ -6,16 +6,26 @@ use Api\Modules\Transactions\DomainModel\Repository\TransactionRepositoryInterfa
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Modules\Transactions\DomainModel\Model\TransactionEnum;
 use \DateTimeImmutable;
+use Api\Modules\Transactions\DomainModel\Repository\UserTransactionRepositoryInterface;
+use Api\Library\Persistence\TransactionManagerInterface;
 
 class TransactionCancel
 {
     private TransactionRepositoryInterface $transactionRepository;
     
+    private UserTransactionRepositoryInterface $userTransactionRepostory;
+    
+    private TransactionManagerInterface $transactionManager;
+    
     public function __construct(
-        TransactionRepositoryInterface $transactionRepository
+        TransactionRepositoryInterface $transactionRepository,
+        UserTransactionRepositoryInterface $userTransactionRepostory,
+        TransactionManagerInterface $transactionManager
     )
     {
         $this->transactionRepository = $transactionRepository;
+        $this->userTransactionRepostory = $userTransactionRepostory;
+        $this->transactionManager = $transactionManager;
     }
     
     public function execute(TransactionCancelrequest $request)
@@ -34,9 +44,33 @@ class TransactionCancel
             );
         }
         
+        // instancia a transaction com o bd
+        $dbTransaction = $this->transactionManager->getTransaction();
+        
+        // seta a transaction no repository
+        $this->transactionRepository->setTransaction($dbTransaction);
+        
+        // inicia a transaction
+        $dbTransaction->begin();
+        
         // cancela a transação
         $transaction->statusAuthorization = TransactionEnum::AUTHORIZATION_CANCELLED;
         $transaction->updatedAt = new DateTimeImmutable();
         $this->transactionRepository->persist($transaction);
+        
+        // credita o saldo na carteira do pagador
+        $userWalletRepository = $this->userTransactionRepostory->getUserWalletRepository();
+        $payerWallet = $userWalletRepository->findByUserUuid($transaction->payer->uuid);
+        if (!$payerWallet) {
+            throw new TransactionException('Payer Wallet not found', 404);
+        }
+        
+        $payerWallet->balance += $transaction->ammount;
+        $payerWallet->updatedAt = new DateTimeImmutable();
+        
+        $userWalletRepository->persist($payerWallet);
+        
+        // realiza o commit da transaction
+        $dbTransaction->commit();        
     }
 }

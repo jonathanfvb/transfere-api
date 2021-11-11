@@ -30,6 +30,11 @@ class User implements Arrayable
         return empty($this->cnpj) ? UserEnum::TYPE_COMMON : UserEnum::TYPE_SELLER;
     }
     
+    public function isSeller(): string
+    {
+        return $this->getType() == UserEnum::TYPE_SELLER;
+    }
+    
     public function toArray(): array
     {
         return [
