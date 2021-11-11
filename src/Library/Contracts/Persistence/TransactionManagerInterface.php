@@ -1,6 +1,6 @@
 <?php
 
-namespace Api\Library\Persistence;
+namespace Api\Library\Contracts\Persistence;
 
 interface TransactionManagerInterface
 {

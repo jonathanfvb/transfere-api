@@ -2,7 +2,7 @@
 
 namespace Api\Library\Persistence\Phalcon;
 
-use Api\Library\Persistence\RepositoryInterface;
+use Api\Library\Contracts\Persistence\RepositoryInterface;
 use Api\Library\Persistence\Exception\PersistenceException;
 
 abstract class PhalconAbstractRepository implements RepositoryInterface
