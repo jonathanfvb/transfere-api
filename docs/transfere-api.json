@@ -117,6 +117,52 @@
 				}
 			}
 		},
+		"/users/wallet": {
+			"post": {
+				"tags": [
+					"Users"
+				],
+				"summary": "Adds a value to a user wallet",
+				"description": "",
+				"consumes": [
+		        	"application/json"
+		        ],
+		        "produces": [
+		          	"application/json"
+		        ],
+				"parameters": [
+		          {
+		            "in": "body",
+		            "name": "body",
+		            "description": "",
+		            "required": true,
+		            "schema": {
+		              "$ref": "#/definitions/UserWalletAddMoney"
+		            }
+		          }
+		        ],
+				"responses": {
+					"200": {
+						"description": "Success",
+						"examples": {
+							"application/json": {
+								"success": true,
+							    "message": "Monney added"							    
+							}
+						}
+					},
+					"400": {
+						"description": "Maximum balance",
+						"examples": {
+							"application/json": {
+								"success": false,
+							    "message": "Value exceeds the max balance limit"
+							}
+						}
+					}
+				}
+			}
+		},
 		"/transactions": {
 			"post": {
 				"tags": [
@@ -432,6 +478,21 @@
 				"pass": {
 					"type": "password",
 					"example": "123"
+				}
+			}
+		},
+		"UserWalletAddMoney": {
+			"type": "object",
+			"properties": {
+				"uuid": {
+					"type": "string",
+					"example": "077919d2-503b-4378-ac21-52e53d4fa8ab"
+				},
+				"value": {
+					"type": "float",
+					"example": "1.00",
+					"minimum": "0.01",
+					"maximum": "999999999999.99"
 				}
 			}
 		},
