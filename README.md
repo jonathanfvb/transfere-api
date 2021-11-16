@@ -51,8 +51,11 @@ Etapas:
 - Fim;
 
 
-## Acessando a documentação
+## Acessando a documentação da API
 [Swagger API Doc](http://localhost:8080/docs/)
+
+## Documentação da arquitetura
+Informações referente à arquitetura do projeto, bem como detalhes referente à organização dos diretórios do mesmo, podem ser encontradas [aqui](ARCHITECTURE.md).
 
 ## Rodando Testes Unitários
 Para executar os testes unitários execute o comando abaixo:
