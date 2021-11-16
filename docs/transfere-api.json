@@ -2,7 +2,7 @@
 	"swagger": "2.0",
 	"info": {
 		"title": "Transfere API",
-		"version": "1.0.0",
+		"version": "1.0.1",
 		"description": "Swagger documentation of Transfere API",
 		"contact": {
 			"email": "jonathan.fvb@hotmail.com"

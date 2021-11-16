@@ -304,7 +304,6 @@ $app->post('/users/wallet', function () use ($app) {
     }
 });
 
-
 $app->post('/users/common', function () use ($app) {
     try {
         /** @var \DI\Container $DiContainer */
@@ -352,7 +351,7 @@ $app->post('/users/common', function () use ($app) {
     }
 });
 
-$app->post('/users/sellers', function () use ($app) {
+$app->post('/users/seller', function () use ($app) {
     try {
         /** @var \DI\Container $DiContainer */
         $DiContainer = $app->getDI()->get('container');
