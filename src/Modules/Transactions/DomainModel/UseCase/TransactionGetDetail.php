@@ -19,7 +19,6 @@ class TransactionGetDetail
     
     public function execute(TransactionGetDetailrequest $request): TransactionGetDetailDTO
     {
-        // busca a transação
         $transaction = $this->transactionRepository->findByUuid($request->transactionUuid);
         if (!$transaction) {
             throw new TransactionException('Transaction not found', 404);

@@ -10,7 +10,7 @@ class UserWallet implements Arrayable
     /** @var User */
     public User $User;
     
-    public float $balance;
+    public float $balance = 0;
     
     /** @var \DateTimeImmutable */
     public \DateTimeImmutable $updatedAt;

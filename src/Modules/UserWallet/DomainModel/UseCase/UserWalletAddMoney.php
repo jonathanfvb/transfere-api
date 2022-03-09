@@ -38,15 +38,11 @@ class UserWalletAddMoney
             throw new UserWalletException('User Wallet not found', 404);
         }
         
-        // adiciona o valor à carteira do usuário
         $userWallet->balance += $request->value;
-        
-        // valida se o valor excede o valor máximo permitido na carteira
         if ($userWallet->balance > UserWalletEnum::MAX_BALANCE_LIMIT) {
             throw new UserWalletException('Value exceeds the max balance limit', 400);
         }
         
-        // persiste o registro
         $userWallet->updatedAt = new DateTimeImmutable();
         $userWalletRepository->persist($userWallet);
     }

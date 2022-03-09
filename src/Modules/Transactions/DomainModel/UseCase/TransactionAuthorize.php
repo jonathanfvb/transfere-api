@@ -41,13 +41,11 @@ class TransactionAuthorize
     
     public function execute(TransactionAuthorizerequest $request): TransactionAuthorizeDTO
     {
-        // busca a transação
         $this->transaction = $this->transactionRepository->findByUuid($request->transactionUuid);
         if (!$this->transaction) {
             throw new TransactionException('Transaction not found', 404);
         }
         
-        // valida se está pendente de autorização
         if (!$this->transaction->isAuthorizationPending()) {
             throw new TransactionException(
                 "Transaction can not be authorized. Status: {$this->transaction->statusAuthorization}.", 
@@ -55,39 +53,28 @@ class TransactionAuthorize
             );
         }
         
-        // busca a carteira do pagador
         $payerWallet = $this->userWalletRepository->findByUserUuid($this->transaction->payer->uuid);
         if (!$payerWallet) {
             throw new TransactionException('Payer Wallet not found', 404);
         }
         
-        // busca a carteira do beneficiário
         $payeeWallet = $this->userWalletRepository->findByUserUuid($this->transaction->payee->uuid);
         if (!$payeeWallet) {
             throw new TransactionException('Payee Wallet not found', 404);
         }
         
-        // realiza a autorização em um serviço externo
         $this->authorizeByExternalService($payerWallet);
         
-        // instancia a transaction com o bd
         $dbTransaction = $this->transactionManager->getTransaction();
-        
-        // seta a transaction no repository
         $this->userWalletRepository->setTransaction($dbTransaction);
-        
-        // inicia a transaction
         $dbTransaction->begin();
         
         // credita o valor para o beneficiário
         $payeeWallet->balance += $this->transaction->ammount;
         $payeeWallet->updatedAt = new DateTimeImmutable();
-        
-        // valida se o valor excede o valor máximo permitido na carteira
         if ($payeeWallet->balance > UserWalletEnum::MAX_BALANCE_LIMIT) {
             throw new TransactionException('Value exceeds the max balance limit', 400);
         }
-        
         $this->userWalletRepository->persist($payeeWallet);
         
         // altera o status da transação para autorizada
@@ -95,9 +82,7 @@ class TransactionAuthorize
         $this->transaction->updatedAt = new DateTimeImmutable();
         $this->transactionRepository->persist($this->transaction);
         
-        // realiza o commit da transaction
         $dbTransaction->commit();
-        
         return new TransactionAuthorizeDTO(
             $this->transaction->uuid, 
             $this->transaction->statusAuthorization,
@@ -112,13 +97,8 @@ class TransactionAuthorize
             $this->transaction->ammount
         );
         if (!$isAuthorized) {
-            // instancia a transaction com o bd
             $dbTransaction = $this->transactionManager->getTransaction();
-            
-            // seta a transaction no repository
             $this->userWalletRepository->setTransaction($dbTransaction);
-            
-            // inicia a transaction
             $dbTransaction->begin();
             
             // credita o valor na carteira do pagador
@@ -131,9 +111,7 @@ class TransactionAuthorize
             $this->transaction->updatedAt = new DateTimeImmutable();
             $this->transactionRepository->persist($this->transaction);
             
-            // realiza o commit da transaction
             $dbTransaction->commit();
-            
             throw new TransactionException('Transaction unauthorized', 400);
         }
     }

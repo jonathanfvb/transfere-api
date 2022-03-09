@@ -30,13 +30,11 @@ class TransactionCancel
     
     public function execute(TransactionCancelrequest $request)
     {
-        // busca a transação
         $transaction = $this->transactionRepository->findByUuid($request->transactionUuid);
         if (!$transaction) {
             throw new TransactionException('Transaction not found', 404);
         }
         
-        // valida se está pendente de autorização
         if (!$transaction->isAuthorizationPending()) {
             throw new TransactionException(
                 "Transaction can not be cancelled. Status: {$transaction->statusAuthorization}.",
@@ -44,13 +42,8 @@ class TransactionCancel
             );
         }
         
-        // instancia a transaction com o bd
         $dbTransaction = $this->transactionManager->getTransaction();
-        
-        // seta a transaction no repository
         $this->transactionRepository->setTransaction($dbTransaction);
-        
-        // inicia a transaction
         $dbTransaction->begin();
         
         // cancela a transação
@@ -64,13 +57,10 @@ class TransactionCancel
         if (!$payerWallet) {
             throw new TransactionException('Payer Wallet not found', 404);
         }
-        
         $payerWallet->balance += $transaction->ammount;
         $payerWallet->updatedAt = new DateTimeImmutable();
-        
         $userWalletRepository->persist($payerWallet);
         
-        // realiza o commit da transaction
-        $dbTransaction->commit();        
+        $dbTransaction->commit();
     }
 }

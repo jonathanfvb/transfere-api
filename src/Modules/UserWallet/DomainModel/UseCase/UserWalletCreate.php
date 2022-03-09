@@ -25,7 +25,6 @@ class UserWalletCreate
     )
     {
         if (!empty($transactionManager)) {
-            // seta a transaction no repository
             $this->userWalletRepository->setTransaction($transactionManager->getTransaction());
         }
         
@@ -33,7 +32,6 @@ class UserWalletCreate
         $userWallet->User = $user;
         $userWallet->balance = 0;
         $userWallet->updatedAt = new DateTimeImmutable();
-        
         $this->userWalletRepository->persist($userWallet);
     }
 }

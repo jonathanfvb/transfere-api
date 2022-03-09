@@ -17,7 +17,7 @@ class TransactionStart
 {
     private TransactionRepositoryInterface $transactionRepository;
     
-    private UserTransactionRepositoryInterface $userTransactionRepostory;
+    private UserTransactionRepositoryInterface $userTransactionRepository;
     
     private UuidGeneratorInterface $uuidGenerator;
     
@@ -29,13 +29,13 @@ class TransactionStart
     
     public function __construct(
         TransactionRepositoryInterface $transactionRepository,
-        UserTransactionRepositoryInterface $userTransactionRepostory,
+        UserTransactionRepositoryInterface $userTransactionRepository,
         UuidGeneratorInterface $uuidGenerator,
         TransactionManagerInterface $transactionManager
     )
     {
         $this->transactionRepository = $transactionRepository;
-        $this->userTransactionRepostory = $userTransactionRepostory;
+        $this->userTransactionRepository = $userTransactionRepository;
         $this->uuidGenerator = $uuidGenerator;
         $this->transactionManager = $transactionManager;
     }
@@ -44,16 +44,11 @@ class TransactionStart
     {
         $this->validate($request);
         
-        // instancia a transaction com o bd
         $dbTransaction = $this->transactionManager->getTransaction();
-        
-        // seta a transaction no repository
         $this->transactionRepository->setTransaction($dbTransaction);
-        
-        // inicia a transaction
         $dbTransaction->begin();
-        
-        // cria a transação com status pendente de autorização e notificação
+
+        // registra a transação
         $transaction = new Transaction();
         $transaction->uuid = $this->uuidGenerator->generateUuid();
         $transaction->ammount = $request->value;
@@ -62,20 +57,15 @@ class TransactionStart
         $transaction->payer = $this->transactionPayer->user;
         $transaction->payee = $this->transactionPayee->user;
         $transaction->createdAt = new DateTimeImmutable();
-        
-        // registra a transação
         $this->transactionRepository->persist($transaction);
         
         // debita o saldo da carteira do pagador
         $this->transactionPayer->userWallet->balance -= $request->value;
         $this->transactionPayer->userWallet->updatedAt = new DateTimeImmutable();
-        
-        $userWalletRepository = $this->userTransactionRepostory->getUserWalletRepository();
+        $userWalletRepository = $this->userTransactionRepository->getUserWalletRepository();
         $userWalletRepository->persist($this->transactionPayer->userWallet);
         
-        // realiza o commit da transaction
         $dbTransaction->commit();
-        
         return new TransactionStartDTO($transaction->uuid);
     }
     
@@ -87,9 +77,8 @@ class TransactionStart
             throw new TransactionException('Value not allowed', 400);
         }
         
-        $userRepository = $this->userTransactionRepostory->getUserRepository();
-        $userWalletRepository = $this->userTransactionRepostory->getUserWalletRepository();
-        
+        $userRepository = $this->userTransactionRepository->getUserRepository();
+        $userWalletRepository = $this->userTransactionRepository->getUserWalletRepository();
         $payer = $userRepository->findByUuid($request->userPayerUuid);
         if (!$payer) {
             throw new TransactionException('Payer not found', 404);
@@ -99,19 +88,15 @@ class TransactionStart
             throw new TransactionException('Payer Wallet not found', 404);
         }
         
-        // valida se o pagador não é um lojista
         if ($payer->isSeller()) {
             throw new TransactionException('Seller is not allowed to send money', 400);
         }
         
-        // valida se há saldo na carteira do usuário
         if ($request->value > $payerWallet->balance) {
             throw new TransactionException('Balance unavailable', 400);
         }
-        
-        // instancia o usuário pagador
         $this->transactionPayer = new UserTransaction($payer, $payerWallet);
-        
+
         $payee = $userRepository->findByUuid($request->userPayeeUuid);
         if (!$payee) {
             throw new TransactionException('Payee not found', 404);
@@ -120,8 +105,6 @@ class TransactionStart
         if (!$payeeWallet) {
             throw new TransactionException('Payee Wallet not found', 404);
         }
-        
-        // instancia o usuário beneficiário
         $this->transactionPayee = new UserTransaction($payee, $payeeWallet);
     }
 }

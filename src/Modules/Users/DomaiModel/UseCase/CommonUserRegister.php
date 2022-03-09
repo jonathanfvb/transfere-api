@@ -50,33 +50,20 @@ class CommonUserRegister
             throw new UserException('Already exists a user with this email', 400);
         }
         
-        // instancia a transaction com o bd
         $dbTransaction = $this->transactionManager->getTransaction();
-        
-        // seta a transaction no repository
         $this->userRepository->setTransaction($dbTransaction);
-        
-        // inicia a transaction
         $dbTransaction->begin();
                     
-        // cria o usuário do tipo common
         $user = new User();
         $user->uuid = $this->uuidGenerator->generateUuid();
         $user->fullName = $request->fullName;
         $user->cpf = $cpf;
         $user->email = $request->email;
-        // Gera o hash do password
         $user->pass = $this->hashPassword->generateHashedPassword($request->pass);
-        
-        // persiste o usuário
         $this->userRepository->persist($user);
-        
-        // cria a carteira do usuário
         $this->userWalletCreate->execute($user, $this->transactionManager);
         
-        // realiza o commit da transaction
         $dbTransaction->commit();
-        
         return new CommonUserRegisterDTO($user);
     }
 }
