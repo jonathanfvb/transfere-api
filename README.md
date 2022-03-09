@@ -10,14 +10,19 @@ Para instalar siga os passos abaixo:
 
 ### Rodando o container
 ```
-docker-compose build && docker-compose up
+docker-compose build && docker-compose up -d
+```
+
+### Instalando as dependências
+```
+docker exec transfere-api_app_1 composer install
 ```
 
 ### Criando o schema do banco de dados
 *Executar apenas uma vez*
 
 ```
-docker exec transfere-api_app_1 php config/db_setup.php
+docker exec -it transfere-api_app_1 php config/db_setup.php
 ```
 
 ## Acessando a aplicação
@@ -61,5 +66,5 @@ Informações referente à arquitetura do projeto, bem como detalhes referente �
 Para executar os testes unitários execute o comando abaixo:
 
 ```
-./run-tests.sh
+docker exec -it transfere-api_app_1 ./run-tests.sh
 ```
