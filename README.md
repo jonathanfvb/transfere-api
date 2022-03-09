@@ -15,7 +15,7 @@ docker-compose build && docker-compose up -d
 
 ### Instalando as dependências
 ```
-docker exec transfere-api_app_1 composer install
+docker exec -it transfere-api_app_1 composer install
 ```
 
 ### Criando o schema do banco de dados
