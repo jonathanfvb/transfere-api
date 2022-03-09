@@ -2,6 +2,7 @@
 
 namespace Tests\UnitTest\Modules\Transactions\DomainModel\UseCase;
 
+use Api\Modules\Transactions\Persistence\Phalcon\UserTransactionRepository;
 use Tests\AbstractUnitTest;
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionStart;
@@ -18,11 +19,9 @@ class UtTransactionStartTest extends AbstractUnitTest
     /** @var TransactionStart */
     private TransactionStart $TransactionStart;
     
-    
     protected function setUp(): void
     {
         parent::setUp();
-        
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
     }
     
@@ -48,17 +47,15 @@ class UtTransactionStartTest extends AbstractUnitTest
     
     public function testNaoPermiteTransacaoSePagadorNaoExiste()
     {
-        // Cria o mock dos repositories
-        $UserRepository = $this->createMock(UserRepository::class);
-        $UserRepository->method('findByUuid')->willReturn(null);
-        
-        // Seta o UC no container injetando os mocks
-        $this->diContainer->set(
-            'TransactionStart',
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->method('findByUuid')->willReturn(null);
+        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
+        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
+
+        $this->diContainer->set('TransactionStart',
             \DI\autowire(TransactionStart::class)
-            ->constructorParameter('UserRepository', $UserRepository)
-            );
-        
+                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
+        );
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
         
         $this->expectException(TransactionException::class);
@@ -70,156 +67,142 @@ class UtTransactionStartTest extends AbstractUnitTest
     
     public function testNaoPermiteTransacaoSePagadorNaoPossuiCarteira()
     {
-        $Payer = new User();
-        $Payer->Cpf = new Cpf('00000000000');
-        
-        // Cria o mock dos repositories
-        $UserRepository = $this->createMock(UserRepository::class);
-        $UserRepository->method('findByUuid')->willReturn($Payer);
-        
-        $UserWalletRepository = $this->createMock(UserWalletRepository::class);
-        $UserWalletRepository->method('findByUserUuid')->willReturn(null);
-        
-        // Seta o UC no container injetando os mocks
-        $this->diContainer->set(
-            'TransactionStart',
+        $payer = new User();
+        $payer->cpf = new Cpf('00000000000');
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->method('findByUuid')->willReturn($payer);
+
+        $userWalletRepository = $this->createMock(UserWalletRepository::class);
+        $userWalletRepository->method('findByUserUuid')->willReturn(null);
+
+        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
+        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
+        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
+
+        $this->diContainer->set('TransactionStart',
             \DI\autowire(TransactionStart::class)
-            ->constructorParameter('UserRepository', $UserRepository)
-            ->constructorParameter('UserWalletRepository', $UserWalletRepository)
+                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
         );
-        
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
-        
+
         $this->expectException(TransactionException::class);
         $this->expectExceptionMessage('Payer Wallet not found');
         $this->TransactionStart->execute(
             new TransactionStartRequest(1,'payer_uuid','payee_uuid')
         );
     }
-    
+
     public function testNaoPermiteLojistaEnviarDinheiro()
     {
-        $SellerUser = new User();
-        $SellerUser->Cnpj = new Cnpj('00000000000000');
-        
-        $SellerWallet = new UserWallet();
-        
-        // Cria o mock dos repositories
-        $UserRepository = $this->createMock(UserRepository::class);
-        $UserRepository->method('findByUuid')->willReturn($SellerUser);
-        
-        $UserWalletRepository = $this->createMock(UserWalletRepository::class);
-        $UserWalletRepository->method('findByUserUuid')->willReturn($SellerWallet);
-        
-        // Seta o UC no container injetando os mocks
-        $this->diContainer->set(
-            'TransactionStart',
+        $sellerUser = new User();
+        $sellerUser->cnpj = new Cnpj('00000000000000');
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->method('findByUuid')->willReturn($sellerUser);
+
+        $sellerWallet = new UserWallet();
+        $userWalletRepository = $this->createMock(UserWalletRepository::class);
+        $userWalletRepository->method('findByUserUuid')->willReturn($sellerWallet);
+
+        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
+        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
+        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
+
+        $this->diContainer->set('TransactionStart',
             \DI\autowire(TransactionStart::class)
-            ->constructorParameter('UserRepository', $UserRepository)
-            ->constructorParameter('UserWalletRepository', $UserWalletRepository)
+                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
         );
-        
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
-        
+
         $this->expectException(TransactionException::class);
         $this->expectExceptionMessage('Seller is not allowed to send money');
         $this->TransactionStart->execute(
             new TransactionStartRequest(1,'payer_uuid','payee_uuid')
         );
     }
-    
+
     public function testNaoPermiteEnviarValorMaiorQueSaldoDaCarteira()
     {
-        $Payer = new User();
-        $Payer->Cpf = new Cpf('00000000000');
-        
-        $PayerWallet = new UserWallet();
-        $PayerWallet->User = $Payer;
-        $PayerWallet->balance = 100;
-        
-        // Cria o mock dos repositories
-        $UserRepository = $this->createMock(UserRepository::class);
-        $UserRepository->method('findByUuid')->willReturn($Payer);
-        
-        $UserWalletRepository = $this->createMock(UserWalletRepository::class);
-        $UserWalletRepository->method('findByUserUuid')->willReturn($PayerWallet);
-        
-        // Seta o UC no container injetando os mocks
-        $this->diContainer->set(
-            'TransactionStart',
+        $payer = new User();
+        $payer->cpf = new Cpf('00000000000');
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->method('findByUuid')->willReturn($payer);
+
+        $payerWallet = new UserWallet();
+        $payerWallet->User = $payer;
+        $payerWallet->balance = 100;
+        $userWalletRepository = $this->createMock(UserWalletRepository::class);
+        $userWalletRepository->method('findByUserUuid')->willReturn($payerWallet);
+
+        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
+        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
+        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
+
+        $this->diContainer->set('TransactionStart',
             \DI\autowire(TransactionStart::class)
-            ->constructorParameter('UserRepository', $UserRepository)
-            ->constructorParameter('UserWalletRepository', $UserWalletRepository)
+                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
         );
-        
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
-        
+
         $this->expectException(TransactionException::class);
         $this->expectExceptionMessage('Balance unavailable');
         $this->TransactionStart->execute(
             new TransactionStartRequest(100.01,'payer_uuid','payee_uuid')
         );
     }
-    
+
     public function testNaoPermiteTransacaoSeBeneficiarioNaoExiste()
     {
-        $Payer = new User();
-        $Payer->Cpf = new Cpf('00000000000');
-        
-        $PayerWallet = new UserWallet();
-        $PayerWallet->User = $Payer;
-        $PayerWallet->balance = 100;
-        
-        // Cria o mock dos repositories
-        $UserRepository = $this->createMock(UserRepository::class);
-        $UserRepository->method('findByUuid')->willReturnOnConsecutiveCalls($Payer,null);
-        
-        $UserWalletRepository = $this->createMock(UserWalletRepository::class);
-        $UserWalletRepository->method('findByUserUuid')->willReturn($PayerWallet);
-        
-        // Seta o UC no container injetando os mocks
-        $this->diContainer->set(
-            'TransactionStart',
+        $payer = new User();
+        $payer->cpf = new Cpf('00000000000');
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->method('findByUuid')->willReturnOnConsecutiveCalls($payer,null);
+
+        $payerWallet = new UserWallet();
+        $payerWallet->User = $payer;
+        $payerWallet->balance = 100;
+        $userWalletRepository = $this->createMock(UserWalletRepository::class);
+        $userWalletRepository->method('findByUserUuid')->willReturn($payerWallet);
+
+        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
+        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
+        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
+
+        $this->diContainer->set('TransactionStart',
             \DI\autowire(TransactionStart::class)
-            ->constructorParameter('UserRepository', $UserRepository)
-            ->constructorParameter('UserWalletRepository', $UserWalletRepository)
+                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
         );
-        
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
-        
+
         $this->expectException(TransactionException::class);
         $this->expectExceptionMessage('Payee not found');
         $this->TransactionStart->execute(
             new TransactionStartRequest(1,'payer_uuid','payee_uuid')
         );
     }
-    
+
     public function testNaoPermiteTransacaoSeBeneficiarioNaoPossuiCarteira()
     {
-        $Payer = new User();
-        $Payer->Cpf = new Cpf('00000000000');
-        
-        $PayerWallet = new UserWallet();
-        $PayerWallet->User = $Payer;
-        $PayerWallet->balance = 100;
-        
-        // Cria o mock dos repositories
-        $UserRepository = $this->createMock(UserRepository::class);
-        $UserRepository->method('findByUuid')->willReturnOnConsecutiveCalls($Payer, $Payer);
-        
-        $UserWalletRepository = $this->createMock(UserWalletRepository::class);
-        $UserWalletRepository->method('findByUserUuid')->willReturnOnConsecutiveCalls($PayerWallet, null);
-        
-        // Seta o UC no container injetando os mocks
-        $this->diContainer->set(
-            'TransactionStart',
+        $payer = new User();
+        $payer->cpf = new Cpf('00000000000');
+        $userRepository = $this->createMock(UserRepository::class);
+        $userRepository->method('findByUuid')->willReturnOnConsecutiveCalls($payer, $payer);
+
+        $payerWallet = new UserWallet();
+        $payerWallet->User = $payer;
+        $payerWallet->balance = 100;
+        $userWalletRepository = $this->createMock(UserWalletRepository::class);
+        $userWalletRepository->method('findByUserUuid')->willReturnOnConsecutiveCalls($payerWallet, null);
+
+        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
+        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
+        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
+
+        $this->diContainer->set('TransactionStart',
             \DI\autowire(TransactionStart::class)
-            ->constructorParameter('UserRepository', $UserRepository)
-            ->constructorParameter('UserWalletRepository', $UserWalletRepository)
+                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
         );
-        
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
-        
+
         $this->expectException(TransactionException::class);
         $this->expectExceptionMessage('Payee Wallet not found');
         $this->TransactionStart->execute(
