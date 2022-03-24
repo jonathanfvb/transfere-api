@@ -2,7 +2,10 @@
 
 namespace Tests\UnitTest\Modules\Transactions\DomainModel\UseCase;
 
+use Api\Modules\Transactions\DomainModel\Repository\UserTransactionRepositoryInterface;
 use Api\Modules\Transactions\Persistence\Phalcon\UserTransactionRepository;
+use Api\Modules\Users\DomaiModel\Repository\UserRepositoryInterface;
+use Api\Modules\UserWallet\DomainModel\Repository\UserWalletRepositoryInterface;
 use Tests\AbstractUnitTest;
 use Api\Modules\Transactions\DomainModel\Exception\TransactionException;
 use Api\Modules\Transactions\DomainModel\UseCase\TransactionStart;
@@ -18,70 +21,89 @@ class UtTransactionStartTest extends AbstractUnitTest
 {
     /** @var TransactionStart */
     private TransactionStart $TransactionStart;
-    
+
+    /** @var UserTransactionRepositoryInterface  */
+    private UserTransactionRepositoryInterface $mockUserTransactionRepository;
+
+    /** @var UserRepositoryInterface  */
+    private UserRepositoryInterface $mockUserRepository;
+
+    /** @var UserWalletRepositoryInterface  */
+    private UserWalletRepositoryInterface $mockUserWalletRepository;
+
+
     protected function setUp(): void
     {
         parent::setUp();
-        $this->TransactionStart = $this->diContainer->get('TransactionStart');
+
+        $this->mockUserRepository = $this->createMock(UserRepository::class);
+        $this->diContainer->set(UserRepositoryInterface::class, $this->mockUserRepository);
+
+        $this->mockUserWalletRepository = $this->createMock(UserWalletRepository::class);
+        $this->diContainer->set(UserWalletRepositoryInterface::class, $this->mockUserWalletRepository);
+
+        $this->mockUserTransactionRepository = $this->createMock(UserTransactionRepository::class);
+        $this->diContainer->set(UserTransactionRepositoryInterface::class, $this->mockUserTransactionRepository);
     }
-    
+
+    private function setContainerInjectionParameter(string $name, $paramName, $paramValue)
+    {
+        $this->diContainer->set(
+            $name,
+            \DI\autowire(TransactionStart::class)->constructorParameter($paramName, $paramValue)
+        );
+    }
+
     public function testNaoPermiteTransferirMenosQueUmCentavo()
     {
         $this->expectException(TransactionException::class);
         $this->expectExceptionMessage('Value not allowed');
-        
+
+        $this->TransactionStart = $this->diContainer->get('TransactionStart');
         $this->TransactionStart->execute(
             new TransactionStartRequest(0.001,'payer_uuid','payee_uuid')
         );
     }
-    
+
     public function testNaoPermiteTransferirUmTrilhaoOuMais()
     {
         $this->expectException(TransactionException::class);
         $this->expectExceptionMessage('Value not allowed');
-        
+
+        $this->TransactionStart = $this->diContainer->get('TransactionStart');
         $this->TransactionStart->execute(
             new TransactionStartRequest(1000000000000,'payer_uuid','payee_uuid')
         );
     }
-    
+
     public function testNaoPermiteTransacaoSePagadorNaoExiste()
     {
-        $userRepository = $this->createMock(UserRepository::class);
-        $userRepository->method('findByUuid')->willReturn(null);
-        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
-        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
-
-        $this->diContainer->set('TransactionStart',
-            \DI\autowire(TransactionStart::class)
-                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
+        $this->mockUserRepository->method('findByUuid')->willReturn(null);
+        $this->mockUserTransactionRepository->method('getUserRepository')->willReturn($this->mockUserRepository);
+        $this->setContainerInjectionParameter(
+            'TransactionStart',
+            'userTransactionRepository',
+            $this->mockUserTransactionRepository
         );
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
-        
+
         $this->expectException(TransactionException::class);
         $this->expectExceptionMessage('Payer not found');
         $this->TransactionStart->execute(
             new TransactionStartRequest(1,'payer_uuid','payee_uuid')
         );
     }
-    
+
     public function testNaoPermiteTransacaoSePagadorNaoPossuiCarteira()
     {
-        $payer = new User();
-        $payer->cpf = new Cpf('00000000000');
-        $userRepository = $this->createMock(UserRepository::class);
-        $userRepository->method('findByUuid')->willReturn($payer);
-
-        $userWalletRepository = $this->createMock(UserWalletRepository::class);
-        $userWalletRepository->method('findByUserUuid')->willReturn(null);
-
-        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
-        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
-        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
-
-        $this->diContainer->set('TransactionStart',
-            \DI\autowire(TransactionStart::class)
-                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
+        $this->mockUserRepository->method('findByUuid')->willReturn(new User());
+        $this->mockUserWalletRepository->method('findByUserUuid')->willReturn(null);
+        $this->mockUserTransactionRepository->method('getUserRepository')->willReturn($this->mockUserRepository);
+        $this->mockUserTransactionRepository->method('getUserWalletRepository')->willReturn($this->mockUserWalletRepository);
+        $this->setContainerInjectionParameter(
+            'TransactionStart',
+            'userTransactionRepository',
+            $this->mockUserTransactionRepository
         );
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
 
@@ -96,20 +118,14 @@ class UtTransactionStartTest extends AbstractUnitTest
     {
         $sellerUser = new User();
         $sellerUser->cnpj = new Cnpj('00000000000000');
-        $userRepository = $this->createMock(UserRepository::class);
-        $userRepository->method('findByUuid')->willReturn($sellerUser);
-
-        $sellerWallet = new UserWallet();
-        $userWalletRepository = $this->createMock(UserWalletRepository::class);
-        $userWalletRepository->method('findByUserUuid')->willReturn($sellerWallet);
-
-        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
-        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
-        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
-
-        $this->diContainer->set('TransactionStart',
-            \DI\autowire(TransactionStart::class)
-                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
+        $this->mockUserRepository->method('findByUuid')->willReturn($sellerUser);
+        $this->mockUserWalletRepository->method('findByUserUuid')->willReturn(new UserWallet());
+        $this->mockUserTransactionRepository->method('getUserRepository')->willReturn($this->mockUserRepository);
+        $this->mockUserTransactionRepository->method('getUserWalletRepository')->willReturn($this->mockUserWalletRepository);
+        $this->setContainerInjectionParameter(
+            'TransactionStart',
+            'userTransactionRepository',
+            $this->mockUserTransactionRepository
         );
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
 
@@ -124,22 +140,18 @@ class UtTransactionStartTest extends AbstractUnitTest
     {
         $payer = new User();
         $payer->cpf = new Cpf('00000000000');
-        $userRepository = $this->createMock(UserRepository::class);
-        $userRepository->method('findByUuid')->willReturn($payer);
+        $this->mockUserRepository->method('findByUuid')->willReturn($payer);
 
         $payerWallet = new UserWallet();
         $payerWallet->User = $payer;
         $payerWallet->balance = 100;
-        $userWalletRepository = $this->createMock(UserWalletRepository::class);
-        $userWalletRepository->method('findByUserUuid')->willReturn($payerWallet);
-
-        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
-        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
-        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
-
-        $this->diContainer->set('TransactionStart',
-            \DI\autowire(TransactionStart::class)
-                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
+        $this->mockUserWalletRepository->method('findByUserUuid')->willReturn($payerWallet);
+        $this->mockUserTransactionRepository->method('getUserRepository')->willReturn($this->mockUserRepository);
+        $this->mockUserTransactionRepository->method('getUserWalletRepository')->willReturn($this->mockUserWalletRepository);
+        $this->setContainerInjectionParameter(
+            'TransactionStart',
+            'userTransactionRepository',
+            $this->mockUserTransactionRepository
         );
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
 
@@ -154,22 +166,18 @@ class UtTransactionStartTest extends AbstractUnitTest
     {
         $payer = new User();
         $payer->cpf = new Cpf('00000000000');
-        $userRepository = $this->createMock(UserRepository::class);
-        $userRepository->method('findByUuid')->willReturnOnConsecutiveCalls($payer,null);
+        $this->mockUserRepository->method('findByUuid')->willReturnOnConsecutiveCalls($payer, null);
 
         $payerWallet = new UserWallet();
         $payerWallet->User = $payer;
         $payerWallet->balance = 100;
-        $userWalletRepository = $this->createMock(UserWalletRepository::class);
-        $userWalletRepository->method('findByUserUuid')->willReturn($payerWallet);
-
-        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
-        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
-        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
-
-        $this->diContainer->set('TransactionStart',
-            \DI\autowire(TransactionStart::class)
-                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
+        $this->mockUserWalletRepository->method('findByUserUuid')->willReturn($payerWallet);
+        $this->mockUserTransactionRepository->method('getUserRepository')->willReturn($this->mockUserRepository);
+        $this->mockUserTransactionRepository->method('getUserWalletRepository')->willReturn($this->mockUserWalletRepository);
+        $this->setContainerInjectionParameter(
+            'TransactionStart',
+            'userTransactionRepository',
+            $this->mockUserTransactionRepository
         );
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
 
@@ -184,22 +192,18 @@ class UtTransactionStartTest extends AbstractUnitTest
     {
         $payer = new User();
         $payer->cpf = new Cpf('00000000000');
-        $userRepository = $this->createMock(UserRepository::class);
-        $userRepository->method('findByUuid')->willReturnOnConsecutiveCalls($payer, $payer);
+        $this->mockUserRepository->method('findByUuid')->willReturnOnConsecutiveCalls($payer, $payer);
 
         $payerWallet = new UserWallet();
         $payerWallet->User = $payer;
         $payerWallet->balance = 100;
-        $userWalletRepository = $this->createMock(UserWalletRepository::class);
-        $userWalletRepository->method('findByUserUuid')->willReturnOnConsecutiveCalls($payerWallet, null);
-
-        $userTransactionRepository = $this->createMock(UserTransactionRepository::class);
-        $userTransactionRepository->method('getUserRepository')->willReturn($userRepository);
-        $userTransactionRepository->method('getUserWalletRepository')->willReturn($userWalletRepository);
-
-        $this->diContainer->set('TransactionStart',
-            \DI\autowire(TransactionStart::class)
-                ->constructorParameter('userTransactionRepository', $userTransactionRepository)
+        $this->mockUserWalletRepository->method('findByUserUuid')->willReturnOnConsecutiveCalls($payerWallet, null);
+        $this->mockUserTransactionRepository->method('getUserRepository')->willReturn($this->mockUserRepository);
+        $this->mockUserTransactionRepository->method('getUserWalletRepository')->willReturn($this->mockUserWalletRepository);
+        $this->setContainerInjectionParameter(
+            'TransactionStart',
+            'userTransactionRepository',
+            $this->mockUserTransactionRepository
         );
         $this->TransactionStart = $this->diContainer->get('TransactionStart');
 
